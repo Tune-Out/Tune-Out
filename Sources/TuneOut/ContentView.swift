@@ -76,6 +76,7 @@ struct BrowseStationsView: View {
             Group {
                 if usePicker {
                     modeView(for: selectedStationMode)
+                        #if !os(macOS)
                         .toolbar {
                             ToolbarItem(placement: .navigationBarLeading) {
                                 Picker("", selection: $selectedStationMode) {
@@ -86,6 +87,7 @@ struct BrowseStationsView: View {
                                 .frame(maxWidth: 230)
                             }
                         }
+                        #endif
                 } else {
                     List {
                         NavigationLink("Countries", value: BrowseStatonMode.countries)
@@ -145,6 +147,7 @@ struct CountriesListView: View {
                 }
             }
         }
+        #if !os(macOS)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Picker(selection: $sortOption) {
@@ -167,6 +170,7 @@ struct CountriesListView: View {
                 }
             }
         }
+        #endif
         .task {
             if self.countries.isEmpty {
                 await loadCountries()
@@ -261,6 +265,7 @@ struct TagsListView: View {
                 }
             }
         }
+        #if !os(macOS)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Picker(selection: $sortOption) {
@@ -283,6 +288,7 @@ struct TagsListView: View {
                 }
             }
         }
+        #endif
         .task {
             if self.tags.isEmpty {
                 await loadTags()
@@ -358,6 +364,7 @@ struct StationListView: View {
             }
         }
         .navigationTitle(query.title)
+        #if !os(macOS)
         .toolbar {
             ToolbarItem(placement: .topBarTrailing) {
                 Picker(selection: $sortOption) {
@@ -380,6 +387,7 @@ struct StationListView: View {
                 }
             }
         }
+        #endif
         .task {
             if self.stations.isEmpty {
                 await loadStations()
