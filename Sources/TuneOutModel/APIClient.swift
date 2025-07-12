@@ -46,6 +46,7 @@ public struct APIClient {
         logger.trace("fetchData: \(url2.absoluteString)")
 
         var request = URLRequest(url: url2)
+        //request.cachePolicy = .reloadIgnoringLocalAndRemoteCacheData // needed for random sort?
         request.addValue(userAgent, forHTTPHeaderField: "User-Agent")
 
         let (data, response) = try await URLSession.shared.data(for: request)
@@ -138,7 +139,7 @@ public enum StationFilter {
     }
 }
 
-public struct StationInfo: Hashable, Sendable, Decodable {
+public struct StationInfo: Hashable, Sendable, Codable {
     // changeuuid: 01234567-89ab-cdef-0123-456789abcdef
     public var changeuuid: UUID?
     // stationuuid: 01234567-89ab-cdef-0123-456789abcdef
@@ -211,8 +212,51 @@ public struct StationInfo: Hashable, Sendable, Decodable {
     public var geo_long: Double?
     // has_extended_info: false
     public var has_extended_info: Bool?
+
+    public enum CodingKeys : String, CodingKey {
+        case changeuuid = "changeuuid"
+        case stationuuid = "stationuuid"
+        case serveruuid = "serveruuid"
+        case name = "name"
+        case url = "url"
+        case url_resolved = "url_resolved"
+        case homepage = "homepage"
+        case favicon = "favicon"
+        case tags = "tags"
+        case country = "country"
+        case countrycode = "countrycode"
+        case iso_3166_2 = "iso_3166_2"
+        case state = "state"
+        case language = "language"
+        case languagecodes = "languagecodes"
+        case votes = "votes"
+        case lastchangetime = "lastchangetime"
+        case lastchangetime_iso8601 = "lastchangetime_iso8601"
+        case codec = "codec"
+        case bitrate = "bitrate"
+        case hls = "hls"
+        case lastcheckok = "lastcheckok"
+        case lastchecktime = "lastchecktime"
+        case lastchecktime_iso8601 = "lastchecktime_iso8601"
+        case lastcheckoktime = "lastcheckoktime"
+        case lastcheckoktime_iso8601 = "lastcheckoktime_iso8601"
+        case lastlocalchecktime = "lastlocalchecktime"
+        case lastlocalchecktime_iso8601 = "lastlocalchecktime_iso8601"
+        case clicktimestamp = "clicktimestamp"
+        case clicktimestamp_iso8601 = "clicktimestamp_iso8601"
+        case clickcount = "clickcount"
+        case clicktrend = "clicktrend"
+        case ssl_error = "ssl_error"
+        case geo_lat = "geo_lat"
+        case geo_long = "geo_long"
+        case has_extended_info = "has_extended_info"
+    }
 }
 
+extension StationInfo: Identifiable {
+    public typealias ID = UUID
+    public var id: ID { stationuuid }
+}
 
 public struct QueryParams: Sendable {
     // name of the attribute the result list will be sorted by
@@ -226,7 +270,7 @@ public struct QueryParams: Sendable {
     // number of returned data rows (stations) starting with offset
     public var limit: Int?
 
-    init(order: String? = nil, reverse: Bool? = nil, hidebroken: Bool? = nil, offset: Int? = nil, limit: Int? = nil) {
+    public init(order: String? = nil, reverse: Bool? = nil, hidebroken: Bool? = nil, offset: Int? = nil, limit: Int? = nil) {
         self.order = order
         self.reverse = reverse
         self.hidebroken = hidebroken

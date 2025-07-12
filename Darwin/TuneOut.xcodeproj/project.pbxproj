@@ -206,6 +206,7 @@
 			baseConfigurationReference = 496EB72F2A6AE4DE00C1253B /* TuneOut.xcconfig */;
 			buildSettings = {
 				ENABLE_PREVIEWS = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 			};
@@ -216,6 +217,7 @@
 			baseConfigurationReference = 496EB72F2A6AE4DE00C1253B /* TuneOut.xcconfig */;
 			buildSettings = {
 				ENABLE_PREVIEWS = YES;
+				INFOPLIST_KEY_ITSAppUsesNonExemptEncryption = NO;
 				LD_RUNPATH_SEARCH_PATHS = "@executable_path/Frameworks";
 				"LD_RUNPATH_SEARCH_PATHS[sdk=macosx*]" = "@executable_path/../Frameworks";
 			};

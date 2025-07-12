@@ -4,6 +4,9 @@
     "" : {
 
     },
+    "%lld Favorites" : {
+
+    },
     "%lld Items" : {
       "comment" : "Header title for a list that contains the number of items",
       "extractionState" : "stale",
@@ -35,25 +38,26 @@
       }
     },
     "40s" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the 40s music genre"
     },
     "50s" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the 50s music genre"
     },
     "60s" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the 60s music genre"
     },
     "70s" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the 70s music genre"
     },
     "80s" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the 80s music genre"
     },
     "90s" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the 90s music genre"
     },
     "Add" : {
       "comment" : "Button in items list that will cause a new item to be added",
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -82,7 +86,7 @@
       }
     },
     "Adult Contemporary" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the adult contemporary music genre"
     },
     "Appearance" : {
       "comment" : "Settings select label for the interface style of the controls (light, dark, or default)",
@@ -112,6 +116,9 @@
           }
         }
       }
+    },
+    "Bit Rate" : {
+
     },
     "Browse" : {
 
@@ -149,19 +156,19 @@
       }
     },
     "Classic Rock" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the classic rock music genre"
     },
     "Classical" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the classical music genre"
     },
     "Countries" : {
 
     },
     "Country" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the country music genre"
     },
     "Dance" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the dance music genre"
     },
     "Dark" : {
       "comment" : "Menu item indicating that the appearance should be in dark mode",
@@ -194,6 +201,7 @@
     },
     "Date" : {
       "comment" : "Item editor form label for the Date field",
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -222,7 +230,7 @@
       }
     },
     "Electronic" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the electronic music genre"
     },
     "Error: %@" : {
 
@@ -257,10 +265,11 @@
       }
     },
     "Folk" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the folk music genre"
     },
     "Hello [%@](https://skip.tools)!" : {
       "comment" : "Welcome tab contents",
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -289,7 +298,7 @@
       }
     },
     "Hits" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the hits music genre"
     },
     "Home" : {
       "comment" : "Tab bar item title for the Home tab",
@@ -322,13 +331,16 @@
       }
     },
     "House" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the house music genre"
+    },
+    "ID" : {
+
     },
     "Indie" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the indie music genre"
     },
     "Jazz" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the jazz music genre"
     },
     "Light" : {
       "comment" : "Menu item indicating that the appearance should be in light mode",
@@ -363,13 +375,13 @@
 
     },
     "Metal" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the metal music genre"
     },
     "More…" : {
 
     },
     "Music" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the music music genre"
     },
     "Name" : {
       "comment" : "Placeholder title for the Name field in a form",
@@ -401,10 +413,14 @@
       }
     },
     "News" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the alternative music genre\nstation tag name for the news genre"
+    },
+    "No Stations Found" : {
+
     },
     "Notes" : {
       "comment" : "Item editor form label for the Notes field",
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -433,10 +449,16 @@
       }
     },
     "Oldies" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the oldies music genre"
+    },
+    "Pause" : {
+
+    },
+    "Play" : {
+
     },
     "Pop" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the pop music genre"
     },
     "Popularity" : {
 
@@ -471,10 +493,13 @@
       }
     },
     "Public Radio" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the public radio music genre"
+    },
+    "Random" : {
+
     },
     "Rock" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the rock music genre"
     },
     "Save" : {
       "comment" : "Button title indicating that the current contents should be saved",
@@ -504,6 +529,12 @@
           }
         }
       }
+    },
+    "Search" : {
+
+    },
+    "Search Stations" : {
+
     },
     "Settings" : {
       "comment" : "Tab bar item title for the Settings tab",
@@ -538,10 +569,10 @@
 
     },
     "Soul" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the soul music genre"
     },
     "Sports" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the sports music genre"
     },
     "Station Count" : {
 
@@ -579,10 +610,10 @@
 
     },
     "Talk" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the talk music genre"
     },
     "Techno" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the techno music genre"
     },
     "Title" : {
       "comment" : "Label for the item editor form indicating the title of the item",
@@ -614,7 +645,7 @@
       }
     },
     "Top 40" : {
-      "comment" : "station tag name"
+      "comment" : "station tag name for the top music genre"
     },
     "Trend" : {
 

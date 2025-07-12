@@ -10,14 +10,14 @@ enum ContentTab: String, Hashable {
 
 struct ContentView: View {
     @AppStorage("tab") var tab = ContentTab.music
-    @AppStorage("name") var welcomeName = "Skipper"
     @AppStorage("appearance") var appearance = ""
     @State var viewModel = ViewModel()
 
     var body: some View {
         TabView(selection: $tab) {
             NavigationStack {
-                WelcomeView(welcomeName: $welcomeName)
+                ItemListView()
+                    .navigationTitle(Text("\(viewModel.items.count) Favorites"))
             }
             .tabItem {
                 Label {
@@ -33,7 +33,7 @@ struct ContentView: View {
                 .tag(ContentTab.browse)
 
             NavigationStack {
-                SettingsView(appearance: $appearance, welcomeName: $welcomeName)
+                SettingsView(appearance: $appearance)
                     .navigationTitle("Settings")
             }
             .tabItem { Label("Settings", systemImage: "gearshape.fill") }
@@ -44,28 +44,11 @@ struct ContentView: View {
     }
 }
 
-struct WelcomeView: View {
-    @State var heartBeating = false
-    @Binding var welcomeName: String
-
-    var body: some View {
-        VStack(spacing: 0) {
-            Text("Hello [\(welcomeName)](https://skip.tools)!")
-                .padding()
-            Image(systemName: "heart.fill")
-                .foregroundStyle(.red)
-                .scaleEffect(heartBeating ? 1.5 : 1.0)
-                .animation(.easeInOut(duration: 1).repeatForever(), value: heartBeating)
-                .task { heartBeating = true }
-        }
-        .font(.largeTitle)
-    }
-}
-
 struct BrowseStationsView: View {
     enum BrowseStatonMode: Hashable {
         case countries
         case tags
+        case search
     }
 
     let usePicker = false // doesn't look great on Android
@@ -76,12 +59,13 @@ struct BrowseStationsView: View {
             Group {
                 if usePicker {
                     modeView(for: selectedStationMode)
-                        #if !os(macOS)
+                        #if os(iOS) || os(Android)
                         .toolbar {
                             ToolbarItem(placement: .navigationBarLeading) {
                                 Picker("", selection: $selectedStationMode) {
                                     Text("Countries").tag(BrowseStatonMode.countries)
                                     Text("Tags").tag(BrowseStatonMode.tags)
+                                    Text("Search").tag(BrowseStatonMode.tags)
                                 }
                                 .pickerStyle(.segmented)
                                 .frame(maxWidth: 230)
@@ -92,6 +76,7 @@ struct BrowseStationsView: View {
                     List {
                         NavigationLink("Countries", value: BrowseStatonMode.countries)
                         NavigationLink("Tags", value: BrowseStatonMode.tags)
+                        NavigationLink("Search", value: BrowseStatonMode.search)
                     }
                     .navigationTitle(Text("Browse Stations"))
                     .navigationDestination(for: BrowseStatonMode.self) { mode in
@@ -113,6 +98,7 @@ struct BrowseStationsView: View {
             switch mode {
             case .countries: CountriesListView().navigationTitle("Countries")
             case .tags: TagsListView().navigationTitle("Tags")
+            case .search: StationListView(query: StationQuery(title: "Search")).navigationTitle("Search")
             }
         }
     }
@@ -147,9 +133,8 @@ struct CountriesListView: View {
                 }
             }
         }
-        #if !os(macOS)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem {
                 Picker(selection: $sortOption) {
                     ForEach(StationGroupSortOption.allCases) { opt in
                         Text(opt.localizedTitle)
@@ -170,7 +155,6 @@ struct CountriesListView: View {
                 }
             }
         }
-        #endif
         .task {
             if self.countries.isEmpty {
                 await loadCountries()
@@ -265,9 +249,8 @@ struct TagsListView: View {
                 }
             }
         }
-        #if !os(macOS)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
+            ToolbarItem {
                 Picker(selection: $sortOption) {
                     ForEach(StationGroupSortOption.allCases) { opt in
                         Text(opt.localizedTitle)
@@ -288,7 +271,6 @@ struct TagsListView: View {
                 }
             }
         }
-        #endif
         .task {
             if self.tags.isEmpty {
                 await loadTags()
@@ -340,34 +322,61 @@ struct TagsListView: View {
     }
 }
 
+extension StationQueryParams {
+    var queryString: String {
+        get {
+            self.name ?? ""
+        }
+
+        set {
+            self.name = newValue.isEmpty ? nil : newValue
+        }
+    }
+}
+
 struct StationListView: View {
-    let query: StationQuery
+    @State var query: StationQuery
     @Environment(ViewModel.self) var viewModel: ViewModel
-    @State var sortOption: StationSortOption = .popularity
     @State var stations: [StationInfo] = []
-    @State var loading = false
     @State var error: Error? = nil
+    @State var loading = false
+    @State var complete = true
 
     var body: some View {
-        List {
-            if self.loading {
-                HStack {
-                    ProgressView()
-                    Text("Loading…")
+        ZStack {
+            List {
+                if let error = self.error {
+                    Text("Error: \(error.localizedDescription)")
+                } else {
+                    ForEach(stations, id: \.stationuuid) { station in
+                        stationRow(station)
+                    }
+                    if !complete {
+                        HStack {
+                            ProgressView()
+                            Text("Loading…")
+                        }
+                        .task(id: self.stations.count) {
+                            logger.log("loading from \(stations.count)")
+                            await loadStations()
+                        }
+                    }
                 }
-            } else if let error = self.error {
-                Text("Error: \(error.localizedDescription)")
-            } else {
-                ForEach(stations, id: \.stationuuid) { station in
-                    stationRow(station)
+            }
+            if stations.isEmpty && complete && !loading {
+                if self.query.params.queryItems.isEmpty {
+                    Text("Search Stations")
+                        .font(.title)
+                } else {
+                    Text("No Stations Found")
+                        .font(.title)
                 }
             }
         }
         .navigationTitle(query.title)
-        #if !os(macOS)
         .toolbar {
-            ToolbarItem(placement: .topBarTrailing) {
-                Picker(selection: $sortOption) {
+            ToolbarItem {
+                Picker(selection: $query.sortOption) {
                     ForEach(StationSortOption.allCases) { opt in
                         Text(opt.localizedTitle)
                     }
@@ -380,40 +389,72 @@ struct StationListView: View {
 
                 }
                 .pickerStyle(.menu)
-                .onChange(of: sortOption) {
-                    withAnimation {
-                        sortStations()
-                    }
-                }
             }
         }
-        #endif
-        .task {
-            if self.stations.isEmpty {
-                await loadStations()
-            }
+        .task(id: query) {
+            // clear stations so the query is re-fetched with the new sort
+            await loadStations(clear: true)
         }
-        .refreshable {
-            await loadStations()
-        }
+        // the only reason to make this refreshable is if we were to use the "Random" search (which doesn't work), otherwise it just interferes with the scroll up to show the search field
+//        .refreshable {
+//            await loadStations(clear: true)
+//        }
+        .searchable(text: $query.params.queryString)
     }
 
-    func loadStations() async {
+    func loadStations(clear: Bool = false) async {
         self.loading = true
+        if clear {
+            self.stations.removeAll()
+        }
         defer {
             self.loading = false
         }
+        // do nothing when there are no query parameters
+        if self.query.params.queryItems.isEmpty {
+            return
+        }
         do {
+            let (sortAttr, reverse) = query.sortOption.sortAttribute
+            let params = QueryParams(order: sortAttr, reverse: reverse, hidebroken: true, offset: self.stations.count, limit: 100)
             logger.log("loading stations for \(query.params.queryItems)…")
-            let stations = try await APIClient.shared.searchStations(query: query.params)
-            withAnimation {
-                self.stations = cleanup(stations)
-                sortStations()
+            var stations = try await APIClient.shared.searchStations(query: query.params, params: params)
+            if stations.isEmpty {
+                complete = true
+            } else {
+                complete = false
+                stations = cleanup(stations)
+                self.updateStations(unique(self.stations + stations))
             }
             logger.log("loaded \(self.stations.count) stations")
         } catch {
             logger.error("error loading stations: \(error)")
+            // we don't do this because we might have a Swift cancellation error or the Compose equivalent like
+            /// `error loading stations: skip.lib.ErrorException: androidx.compose.runtime.LeftCompositionCancellationException: The coroutine scope left the composition`
+            // self.error = error
         }
+    }
+
+    @MainActor func updateStations(_ stations: [StationInfo]) {
+        withAnimation {
+            self.stations = stations
+        }
+    }
+
+    /// Ensure that no duplicate IDs exist in the list of stations, which will crash on Android with:
+    /// `07-11 17:48:47.636 11894 11894 E AndroidRuntime: java.lang.IllegalArgumentException: Key "9617A958-0601-11E8-AE97-52543BE04C81" was already used. If you are using LazyColumn/Row please make sure you provide a unique key for each item.`
+    func unique(_ stations: [StationInfo]) -> [StationInfo] {
+        var uniqueStations: [StationInfo] = []
+        #if !SKIP
+        uniqueStations.reserveCapacity(stations.count)
+        #endif
+        var ids = Set<StationInfo.ID>()
+        for station in stations {
+            if ids.insert(station.id).inserted {
+                uniqueStations.append(station)
+            }
+        }
+        return uniqueStations
     }
 
     func cleanup(_ stations: [StationInfo]) -> [StationInfo] {
@@ -423,10 +464,6 @@ struct StationListView: View {
             station.tags = station.tags?.trimmingCharacters(in: .whitespacesAndNewlines)
             return station
         }
-    }
-
-    func sortStations() {
-        self.stations = sortOption.sort(self.stations)
     }
 
     func stationRow(_ station: StationInfo) -> some View {
@@ -459,15 +496,35 @@ struct StationInfoView: View {
     let station: StationInfo
 
     var body: some View {
-        VideoPlayer(player: AVPlayer(url: URL(string: station.url_resolved ?? station.url)!))
+        //VideoPlayer(player: AVPlayer(url: URL(string: station.url_resolved ?? station.url)!))
+
+        Form {
+            #if !SKIP
+            LabeledContent("Name", value: station.name)
+            LabeledContent("ID", value: station.stationuuid.uuidString)
+            Text("Bit Rate").badge(station.bitrate ?? 0)
+            #endif
+            //LabeledContent("Bit Rate", value: station.bitrate)
+
+            Button("Play") {
+                viewModel.play(station)
+            }
+            Button("Pause") {
+                viewModel.pause(station)
+            }
+            Button("Favorite") {
+                viewModel.favorite(station)
+            }
+        }
             .navigationTitle(station.name)
+
     }
 }
 
 
 extension View {
     /// Converts a country code like "US" into the Emoji symbol for the country's flag
-    func emojiFlag(countryCode: String) -> String {
+    public func emojiFlag(countryCode: String) -> String {
         if countryCode.count != 2 {
             return "🏳️" // Return white flag for invalid codes
         }
@@ -487,14 +544,16 @@ extension View {
 
 
 struct StationQuery: Hashable {
-    let title: String
-    let params: StationQueryParams
+    var title: String
+    var params: StationQueryParams = StationQueryParams()
+    var sortOption: StationSortOption = .popularity
 }
 
 enum StationSortOption: Identifiable, Hashable, CaseIterable {
     case name
     case popularity
     case trend
+    case random
 
     var id: StationSortOption {
         self
@@ -505,19 +564,29 @@ enum StationSortOption: Identifiable, Hashable, CaseIterable {
         case .name: return LocalizedStringResource("Name")
         case .popularity: return LocalizedStringResource("Popularity")
         case .trend: return LocalizedStringResource("Trend")
+        case .random: return LocalizedStringResource("Random")
         }
     }
 
-    func sort(_ stations: [StationInfo]) -> [StationInfo] {
-        stations.sorted {
-            switch self {
-            case .name:
-                return $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
-            case .popularity:
-                return ($0.votes ?? 0) > ($1.votes ?? 0)
-            case .trend:
-                return ($0.clicktrend ?? 0) > ($1.clicktrend ?? 0)
-            }
+//    func sort(_ stations: [StationInfo]) -> [StationInfo] {
+//        stations.sorted {
+//            switch self {
+//            case .name:
+//                return $0.name.localizedCaseInsensitiveCompare($1.name) == .orderedAscending
+//            case .popularity:
+//                return ($0.votes ?? 0) > ($1.votes ?? 0)
+//            case .trend:
+//                return ($0.clicktrend ?? 0) > ($1.clicktrend ?? 0)
+//            }
+//        }
+//    }
+
+    var sortAttribute: (attribute: String, reverse: Bool?) {
+        switch self {
+        case .name: return (StationInfo.CodingKeys.name.rawValue, false)
+        case .popularity: return (StationInfo.CodingKeys.votes.rawValue, true)
+        case .trend: return (StationInfo.CodingKeys.clicktrend.rawValue, true)
+        case .random: return ("random", nil)
         }
     }
 }
@@ -589,42 +658,41 @@ extension TagInfo {
 
     var localizedTitle: String? {
         switch self.name.lowercased() {
-        case "jazz": return NSLocalizedString("Jazz", bundle: .module, comment: "station tag name")
-        case "rock": return NSLocalizedString("Rock", bundle: .module, comment: "station tag name")
-        case "country": return NSLocalizedString("Country", bundle: .module, comment: "station tag name")
-        case "pop": return NSLocalizedString("Pop", bundle: .module, comment: "station tag name")
-        case "music": return NSLocalizedString("Music", bundle: .module, comment: "station tag name")
-        case "classical": return NSLocalizedString("Classical", bundle: .module, comment: "station tag name")
-        case "talk": return NSLocalizedString("Talk", bundle: .module, comment: "station tag name")
-        case "hits": return NSLocalizedString("Hits", bundle: .module, comment: "station tag name")
-        case "dance": return NSLocalizedString("Dance", bundle: .module, comment: "station tag name")
-        case "oldies": return NSLocalizedString("Oldies", bundle: .module, comment: "station tag name")
-        case "electronic": return NSLocalizedString("Electronic", bundle: .module, comment: "station tag name")
-        case "40s": return NSLocalizedString("40s", bundle: .module, comment: "station tag name")
-        case "50s": return NSLocalizedString("50s", bundle: .module, comment: "station tag name")
-        case "60s": return NSLocalizedString("60s", bundle: .module, comment: "station tag name")
-        case "70s": return NSLocalizedString("70s", bundle: .module, comment: "station tag name")
-        case "80s": return NSLocalizedString("80s", bundle: .module, comment: "station tag name")
-        case "90s": return NSLocalizedString("90s", bundle: .module, comment: "station tag name")
-        case "house": return NSLocalizedString("House", bundle: .module, comment: "station tag name")
-        case "folk": return NSLocalizedString("Folk", bundle: .module, comment: "station tag name")
-        case "metal": return NSLocalizedString("Metal", bundle: .module, comment: "station tag name")
-        case "soul": return NSLocalizedString("Soul", bundle: .module, comment: "station tag name")
-        case "indie": return NSLocalizedString("Indie", bundle: .module, comment: "station tag name")
-        case "techno": return NSLocalizedString("Techno", bundle: .module, comment: "station tag name")
-        case "sports": return NSLocalizedString("Sports", bundle: .module, comment: "station tag name")
-        case "top 40": return NSLocalizedString("Top 40", bundle: .module, comment: "station tag name")
-        case "alternative": return NSLocalizedString("News", bundle: .module, comment: "station tag name")
-        case "public radio": return NSLocalizedString("Public Radio", bundle: .module, comment: "station tag name")
-        case "adult contemporary": return NSLocalizedString("Adult Contemporary", bundle: .module, comment: "station tag name")
-        case "classic rock": return NSLocalizedString("Classic Rock", bundle: .module, comment: "station tag name")
-        case "news": return NSLocalizedString("News", bundle: .module, comment: "station tag name")
+        case "jazz": return NSLocalizedString("Jazz", bundle: .module, comment: "station tag name for the jazz music genre")
+        case "rock": return NSLocalizedString("Rock", bundle: .module, comment: "station tag name for the rock music genre")
+        case "country": return NSLocalizedString("Country", bundle: .module, comment: "station tag name for the country music genre")
+        case "pop": return NSLocalizedString("Pop", bundle: .module, comment: "station tag name for the pop music genre")
+        case "music": return NSLocalizedString("Music", bundle: .module, comment: "station tag name for the music music genre")
+        case "classical": return NSLocalizedString("Classical", bundle: .module, comment: "station tag name for the classical music genre")
+        case "talk": return NSLocalizedString("Talk", bundle: .module, comment: "station tag name for the talk music genre")
+        case "hits": return NSLocalizedString("Hits", bundle: .module, comment: "station tag name for the hits music genre")
+        case "dance": return NSLocalizedString("Dance", bundle: .module, comment: "station tag name for the dance music genre")
+        case "oldies": return NSLocalizedString("Oldies", bundle: .module, comment: "station tag name for the oldies music genre")
+        case "electronic": return NSLocalizedString("Electronic", bundle: .module, comment: "station tag name for the electronic music genre")
+        case "40s": return NSLocalizedString("40s", bundle: .module, comment: "station tag name for the 40s music genre")
+        case "50s": return NSLocalizedString("50s", bundle: .module, comment: "station tag name for the 50s music genre")
+        case "60s": return NSLocalizedString("60s", bundle: .module, comment: "station tag name for the 60s music genre")
+        case "70s": return NSLocalizedString("70s", bundle: .module, comment: "station tag name for the 70s music genre")
+        case "80s": return NSLocalizedString("80s", bundle: .module, comment: "station tag name for the 80s music genre")
+        case "90s": return NSLocalizedString("90s", bundle: .module, comment: "station tag name for the 90s music genre")
+        case "house": return NSLocalizedString("House", bundle: .module, comment: "station tag name for the house music genre")
+        case "folk": return NSLocalizedString("Folk", bundle: .module, comment: "station tag name for the folk music genre")
+        case "metal": return NSLocalizedString("Metal", bundle: .module, comment: "station tag name for the metal music genre")
+        case "soul": return NSLocalizedString("Soul", bundle: .module, comment: "station tag name for the soul music genre")
+        case "indie": return NSLocalizedString("Indie", bundle: .module, comment: "station tag name for the indie music genre")
+        case "techno": return NSLocalizedString("Techno", bundle: .module, comment: "station tag name for the techno music genre")
+        case "sports": return NSLocalizedString("Sports", bundle: .module, comment: "station tag name for the sports music genre")
+        case "top 40": return NSLocalizedString("Top 40", bundle: .module, comment: "station tag name for the top music genre")
+        case "alternative": return NSLocalizedString("News", bundle: .module, comment: "station tag name for the alternative music genre")
+        case "public radio": return NSLocalizedString("Public Radio", bundle: .module, comment: "station tag name for the public radio music genre")
+        case "adult contemporary": return NSLocalizedString("Adult Contemporary", bundle: .module, comment: "station tag name for the adult contemporary music genre")
+        case "classic rock": return NSLocalizedString("Classic Rock", bundle: .module, comment: "station tag name for the classic rock music genre")
+        case "news": return NSLocalizedString("News", bundle: .module, comment: "station tag name for the news genre")
         // TODO: fill in all the popular tags…
         default: return nil
         }
     }
 }
-
 
 struct ItemListView: View {
     @Environment(ViewModel.self) var viewModel: ViewModel
@@ -634,12 +702,12 @@ struct ItemListView: View {
             ForEach(viewModel.items) { item in
                 NavigationLink(value: item) {
                     Label {
-                        Text(item.itemTitle)
+                        Text(item.name)
                     } icon: {
-                        if item.favorite {
-                            Image(systemName: "star.fill")
-                                .foregroundStyle(.yellow)
-                        }
+//                        if item.favorite {
+//                            Image(systemName: "star.fill")
+//                                .foregroundStyle(.yellow)
+//                        }
                     }
                 }
             }
@@ -652,18 +720,18 @@ struct ItemListView: View {
         }
         .navigationDestination(for: Item.self) { item in
             ItemView(item: item)
-                .navigationTitle(item.itemTitle)
+                .navigationTitle(item.name)
         }
         .toolbar {
-            ToolbarItemGroup {
-                Button {
-                    withAnimation {
-                        viewModel.items.insert(Item(), at: 0)
-                    }
-                } label: {
-                    Label("Add", systemImage: "plus")
-                }
-            }
+//            ToolbarItemGroup {
+//                Button {
+//                    withAnimation {
+//                        viewModel.items.insert(Item(), at: 0)
+//                    }
+//                } label: {
+//                    Label("Add", systemImage: "plus")
+//                }
+//            }
         }
     }
 }
@@ -675,13 +743,13 @@ struct ItemView: View {
 
     var body: some View {
         Form {
-            TextField("Title", text: $item.title)
+            TextField("Title", text: $item.name)
                 .textFieldStyle(.roundedBorder)
-            Toggle("Favorite", isOn: $item.favorite)
-            DatePicker("Date", selection: $item.date)
-            Text("Notes").font(.title3)
-            TextEditor(text: $item.notes)
-                .border(Color.secondary, width: 1.0)
+//            Toggle("Favorite", isOn: $item.favorite)
+//            DatePicker("Date", selection: $item.date)
+//            Text("Notes").font(.title3)
+//            TextEditor(text: $item.notes)
+//                .border(Color.secondary, width: 1.0)
         }
         .navigationBarBackButtonHidden()
         .toolbar {
@@ -703,11 +771,9 @@ struct ItemView: View {
 
 struct SettingsView: View {
     @Binding var appearance: String
-    @Binding var welcomeName: String
 
     var body: some View {
         Form {
-            TextField("Name", text: $welcomeName)
             Picker("Appearance", selection: $appearance) {
                 Text("System").tag("")
                 Text("Light").tag("light")

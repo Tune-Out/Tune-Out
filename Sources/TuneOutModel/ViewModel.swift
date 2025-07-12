@@ -7,6 +7,8 @@ import OSLog
 /// A logger for the TuneOutModel module.
 let logger: Logger = Logger(subsystem: "tune.out.model", category: "TuneOutModel")
 
+public typealias Item = StationInfo
+
 /// The Observable ViewModel used by the application.
 @Observable public class ViewModel {
     // TODO: enable setting hidebroken from user preference
@@ -34,6 +36,18 @@ let logger: Logger = Logger(subsystem: "tune.out.model", category: "TuneOutModel
             i.id == item.id ? item : i
         }
     }
+
+    public func favorite(_ station: StationInfo) {
+        items.append(station)
+    }
+
+    public func play(_ station: StationInfo) {
+
+    }
+
+    public func pause(_ station: StationInfo) {
+
+    }
 }
 
 /// Utilities for defaulting and persising the items in the list
@@ -52,8 +66,7 @@ extension ViewModel {
         } catch {
             // perhaps the first launch, or the data could not be read
             logger.warning("failed to load data from \(Self.savePath), using defaultItems: \(error)")
-            let defaultItems = (1...365).map { Date(timeIntervalSinceNow: Double($0 * 60 * 60 * 24 * -1)) }
-            return defaultItems.map({ Item(date: $0) })
+            return []
         }
     }
 
@@ -71,31 +84,4 @@ extension ViewModel {
     }
 }
 
-/// An individual item held by the ViewModel
-public struct Item : Identifiable, Hashable, Codable {
-    public let id: UUID
-    public var date: Date
-    public var favorite: Bool
-    public var title: String
-    public var notes: String
 
-    public init(id: UUID = UUID(), date: Date = .now, favorite: Bool = false, title: String = "", notes: String = "") {
-        self.id = id
-        self.date = date
-        self.favorite = favorite
-        self.title = title
-        self.notes = notes
-    }
-
-    public var itemTitle: String {
-        !title.isEmpty ? title : dateString
-    }
-
-    public var dateString: String {
-        date.formatted(date: .complete, time: .omitted)
-    }
-
-    public var dateTimeString: String {
-        date.formatted(date: .abbreviated, time: .shortened)
-    }
-}

@@ -40,7 +40,7 @@ typealias AppMainDelegateBase = NSApplicationDelegate
 typealias AppType = NSApplication
 #endif
 
-class AppMainDelegate: NSObject, AppMainDelegateBase {
+@MainActor class AppMainDelegate: NSObject, AppMainDelegateBase {
     let application = AppType.shared
 
     #if canImport(UIKit)
