@@ -281,7 +281,7 @@ extension ViewModel {
     /// `07-11 17:48:47.636 11894 11894 E AndroidRuntime: java.lang.IllegalArgumentException: Key "9617A958-0601-11E8-AE97-52543BE04C81" was already used. If you are using LazyColumn/Row please make sure you provide a unique key for each item.`
     public static func unique(_ stations: [StationInfo]) -> [StationInfo] {
         var uniqueStations: [StationInfo] = []
-        #if SKIP
+        #if !SKIP
         uniqueStations.reserveCapacity(stations.count)
         #endif
         var ids = Set<StationInfo.ID>()
