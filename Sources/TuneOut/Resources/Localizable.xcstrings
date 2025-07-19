@@ -1,42 +1,6 @@
 {
   "sourceLanguage" : "en",
   "strings" : {
-    "" : {
-
-    },
-    "%lld Favorites" : {
-
-    },
-    "%lld Items" : {
-      "comment" : "Header title for a list that contains the number of items",
-      "extractionState" : "stale",
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld elementos"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld éléments"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "アイテム数 %lld"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "%lld 个条目"
-          }
-        }
-      }
-    },
     "40s" : {
       "comment" : "station tag name for the 40s music genre"
     },
@@ -54,36 +18,6 @@
     },
     "90s" : {
       "comment" : "station tag name for the 90s music genre"
-    },
-    "Add" : {
-      "comment" : "Button in items list that will cause a new item to be added",
-      "extractionState" : "stale",
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Añadir"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Ajouter"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "追加"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "添加"
-          }
-        }
-      }
     },
     "Adult Contemporary" : {
       "comment" : "station tag name for the adult contemporary music genre"
@@ -128,6 +62,7 @@
     },
     "Cancel" : {
       "comment" : "Button title indicating that the operation should be cancelled",
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -160,6 +95,9 @@
     },
     "Classical" : {
       "comment" : "station tag name for the classical music genre"
+    },
+    "Collections" : {
+
     },
     "Countries" : {
 
@@ -199,36 +137,6 @@
         }
       }
     },
-    "Date" : {
-      "comment" : "Item editor form label for the Date field",
-      "extractionState" : "stale",
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Fecha"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Date"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "日付"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "日期"
-          }
-        }
-      }
-    },
     "Electronic" : {
       "comment" : "station tag name for the electronic music genre"
     },
@@ -264,77 +172,17 @@
         }
       }
     },
+    "Favorites" : {
+
+    },
     "Folk" : {
       "comment" : "station tag name for the folk music genre"
-    },
-    "Hello [%@](https://skip.tools)!" : {
-      "comment" : "Welcome tab contents",
-      "extractionState" : "stale",
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "¡Hola [%@](https://skip.tools)!"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bonjour [%@](https://skip.tools)!"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "こんにちは [%@](https://skip.tools)"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "你好 [%@](https://skip.tools)"
-          }
-        }
-      }
     },
     "Hits" : {
       "comment" : "station tag name for the hits music genre"
     },
-    "Home" : {
-      "comment" : "Tab bar item title for the Home tab",
-      "extractionState" : "stale",
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Inicio"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Accueil"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ホーム"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "首页"
-          }
-        }
-      }
-    },
     "House" : {
       "comment" : "station tag name for the house music genre"
-    },
-    "ID" : {
-
     },
     "Indie" : {
       "comment" : "station tag name for the indie music genre"
@@ -378,7 +226,7 @@
       "comment" : "station tag name for the metal music genre"
     },
     "More…" : {
-
+      "comment" : "button title to expand the list of tags in the browse stations view"
     },
     "Music" : {
       "comment" : "station tag name for the music music genre"
@@ -415,38 +263,14 @@
     "News" : {
       "comment" : "station tag name for the alternative music genre\nstation tag name for the news genre"
     },
+    "No Station Selected" : {
+
+    },
     "No Stations Found" : {
 
     },
-    "Notes" : {
-      "comment" : "Item editor form label for the Notes field",
-      "extractionState" : "stale",
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notas"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Notes"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ノート"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "笔记"
-          }
-        }
-      }
+    "Now Playing" : {
+
     },
     "Oldies" : {
       "comment" : "station tag name for the oldies music genre"
@@ -454,7 +278,13 @@
     "Pause" : {
 
     },
+    "Pause the current station" : {
+
+    },
     "Play" : {
+
+    },
+    "Play the current station" : {
 
     },
     "Pop" : {
@@ -501,39 +331,13 @@
     "Rock" : {
       "comment" : "station tag name for the rock music genre"
     },
-    "Save" : {
-      "comment" : "Button title indicating that the current contents should be saved",
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Guardar"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Enregistrer"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "保存"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "保存"
-          }
-        }
-      }
-    },
     "Search" : {
 
     },
     "Search Stations" : {
+
+    },
+    "Selection" : {
 
     },
     "Settings" : {
@@ -565,6 +369,15 @@
         }
       }
     },
+    "Show Less" : {
+      "comment" : "button title to collapse the list of tags in the browse stations view"
+    },
+    "Skip to the next station" : {
+
+    },
+    "Skip to the previous station" : {
+
+    },
     "Sort" : {
 
     },
@@ -575,6 +388,9 @@
       "comment" : "station tag name for the sports music genre"
     },
     "Station Count" : {
+
+    },
+    "Station Name" : {
 
     },
     "System" : {
@@ -617,6 +433,7 @@
     },
     "Title" : {
       "comment" : "Label for the item editor form indicating the title of the item",
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -648,6 +465,9 @@
       "comment" : "station tag name for the top music genre"
     },
     "Trend" : {
+
+    },
+    "Unfavorite" : {
 
     },
     "Version %@ (%@)" : {
@@ -685,35 +505,8 @@
         }
       }
     },
-    "Welcome" : {
-      "comment" : "Tab bar item title for the Welcome tab",
-      "extractionState" : "stale",
-      "localizations" : {
-        "es" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bienvenido"
-          }
-        },
-        "fr" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "Bienvenue"
-          }
-        },
-        "ja" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "ようこそ"
-          }
-        },
-        "zh-Hans" : {
-          "stringUnit" : {
-            "state" : "translated",
-            "value" : "欢迎"
-          }
-        }
-      }
+    "Volume" : {
+
     }
   },
   "version" : "1.0"

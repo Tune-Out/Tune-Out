@@ -5,32 +5,46 @@ import SkipAV
 import TuneOutModel
 
 enum ContentTab: String, Hashable {
-    case music, browse, settings
+    case browse, collections, music, search, settings
 }
 
 struct ContentView: View {
-    @AppStorage("tab") var tab = ContentTab.music
+    @AppStorage("tab") var tab = ContentTab.browse
     @AppStorage("appearance") var appearance = ""
     @State var viewModel = ViewModel()
 
     var body: some View {
         TabView(selection: $tab) {
+            BrowseStationsView()
+                .tabItem { Label("Browse", systemImage: "list.bullet") }
+                .tag(ContentTab.browse)
+
             NavigationStack {
-                ItemListView()
-                    .navigationTitle(Text("\(viewModel.items.count) Favorites"))
+                // CollectionsListView() // FIXME
+                FavoritesListView()
+                    .navigationTitle("Favorites")
+                    .stationNavigationDestinations()
             }
+                .tabItem { Label("Collections", systemImage: "star.fill") }
+                .tag(ContentTab.collections)
+
+            MusicPlayerView()
             .tabItem {
                 Label {
-                    Text("Music")
+                    Text("Now Playing")
                 } icon: {
                     Image("MusicCast", bundle: .module)
                 }
             }
             .tag(ContentTab.music)
 
-            BrowseStationsView()
-                .tabItem { Label("Browse", systemImage: "list.bullet") }
-                .tag(ContentTab.browse)
+            NavigationStack {
+                StationListView(query: StationQuery(title: "Search"))
+                    .navigationTitle("Search")
+                    .stationNavigationDestinations()
+            }
+                .tabItem { Label("Search", systemImage: "magnifyingglass") }
+                .tag(ContentTab.search)
 
             NavigationStack {
                 SettingsView(appearance: $appearance)
@@ -39,8 +53,130 @@ struct ContentView: View {
             .tabItem { Label("Settings", systemImage: "gearshape.fill") }
             .tag(ContentTab.settings)
         }
+//            .tabViewBottomAccessory {
+//                RadioPlayerView()
+//            }
         .environment(viewModel)
         .preferredColorScheme(appearance == "dark" ? .dark : appearance == "light" ? .light : nil)
+    }
+}
+
+extension View {
+    /// Standard navigation destinations for station browsing
+    public func stationNavigationDestinations() -> some View {
+        self
+        .navigationDestination(for: StationQuery.self) {
+            StationListView(query: $0)
+        }
+        .navigationDestination(for: StationInfo.self) {
+            StationInfoView(station: $0)
+        }
+    }
+}
+
+struct MusicPlayerView: View {
+    @Environment(ViewModel.self) var viewModel: ViewModel
+    @State var volume = 1.0
+
+    var body: some View {
+        VStack {
+            if let station = viewModel.nowPlaying {
+                Spacer()
+
+                if let favicon = station.favicon, let faviconURL = URL(string: favicon) {
+                    AsyncImage(url: faviconURL) { image in
+                        image.resizable()
+                    } placeholder: {
+                    }
+                    .scaledToFit()
+                    .frame(width: 200, height: 200)
+                }
+
+                Spacer()
+
+                Text(station.name.trimmingCharacters(in: .whitespacesAndNewlines))
+                    .multilineTextAlignment(.center)
+                    #if !SKIP
+                    .textSelection(.enabled)
+                    #endif
+                    .font(.title)
+                    .lineLimit(3)
+                    .padding()
+
+                Text(viewModel.curentTrackTitle?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "")
+                    .multilineTextAlignment(.center)
+                    #if !SKIP
+                    .textSelection(.enabled)
+                    #endif
+                    .font(.title2)
+                    .lineLimit(5)
+                    .padding()
+
+                Spacer()
+
+                HStack {
+                    Spacer()
+                    Button {
+                        // Back
+                    } label: {
+                        Image("skip_previous_skip_previous_fill1_symbol", bundle: .module, label: Text("Skip to the previous station"))
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 50, height: 50)
+                    }
+
+                    Spacer()
+
+                    if viewModel.playing {
+                        Button {
+                            viewModel.pause()
+                        } label: {
+                            Image("pause_pause_fill1_symbol", bundle: .module, label: Text("Pause the current station"))
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 50, height: 50)
+                        }
+                    } else {
+                        Button {
+                            viewModel.play(station)
+                        } label: {
+                            Image("play_arrow_play_arrow_fill1_symbol", bundle: .module, label: Text("Play the current station"))
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 50, height: 50)
+                        }
+                    }
+
+                    Spacer()
+
+                    Button {
+                        // Next
+                    } label: {
+                        Image("skip_next_skip_next_fill1_symbol", bundle: .module, label: Text("Skip to the next station"))
+                            .resizable()
+                            .aspectRatio(contentMode: .fit)
+                            .frame(width: 50, height: 50)
+                    }
+
+                    Spacer()
+                }
+
+                Slider(value: $volume, in: 0.0...1.0)
+                    .padding()
+                    .accessibilityLabel(Text("Volume"))
+                    .onAppear {
+                        self.volume = Double(viewModel.player.volume)
+                    }
+                    .onChange(of: volume) {
+                        viewModel.player.volume = Float(volume)
+                    }
+
+                Spacer()
+            } else {
+                Text("No Station Selected")
+                    .font(.title)
+            }
+        }
     }
 }
 
@@ -48,58 +184,58 @@ struct BrowseStationsView: View {
     enum BrowseStatonMode: Hashable {
         case countries
         case tags
-        case search
     }
 
-    let usePicker = false // doesn't look great on Android
+    let usePicker = true // doesn't look great on Android
     @State var selectedStationMode = BrowseStatonMode.countries
+
+    #if os(iOS) || os(Android)
+    let pickerPlacement = ToolbarItemPlacement.navigationBarLeading
+    #else
+    let pickerPlacement = ToolbarItemPlacement.navigation
+    #endif
 
     var body: some View {
         NavigationStack {
             Group {
                 if usePicker {
-                    modeView(for: selectedStationMode)
-                        #if os(iOS) || os(Android)
-                        .toolbar {
-                            ToolbarItem(placement: .navigationBarLeading) {
-                                Picker("", selection: $selectedStationMode) {
-                                    Text("Countries").tag(BrowseStatonMode.countries)
-                                    Text("Tags").tag(BrowseStatonMode.tags)
-                                    Text("Search").tag(BrowseStatonMode.tags)
-                                }
-                                .pickerStyle(.segmented)
-                                .frame(maxWidth: 230)
+                    TabView(selection: $selectedStationMode) {
+                        CountriesListView()
+                            .navigationTitle("Countries")
+                            .navigationBarTitleDisplayMode(.large)
+                            .tag(BrowseStatonMode.countries)
+                        TagsListView()
+                            .navigationTitle("Tags")
+                            .navigationBarTitleDisplayMode(.large)
+                            .tag(BrowseStatonMode.tags)
+                    }
+                    .tabViewStyle(.page(indexDisplayMode: .never))
+                    .toolbar {
+                        ToolbarItem(placement: pickerPlacement) {
+                            Picker("Selection", selection: $selectedStationMode) {
+                                Text("Countries").tag(BrowseStatonMode.countries)
+                                Text("Tags").tag(BrowseStatonMode.tags)
+                                //Text("Search").tag(BrowseStatonMode.tags)
                             }
+                            .pickerStyle(.segmented)
+                            .frame(maxWidth: 230)
                         }
-                        #endif
+                    }
                 } else {
                     List {
                         NavigationLink("Countries", value: BrowseStatonMode.countries)
                         NavigationLink("Tags", value: BrowseStatonMode.tags)
-                        NavigationLink("Search", value: BrowseStatonMode.search)
                     }
                     .navigationTitle(Text("Browse Stations"))
                     .navigationDestination(for: BrowseStatonMode.self) { mode in
-                        modeView(for: mode)
+                        switch mode {
+                        case .countries: CountriesListView().navigationTitle("Countries")
+                        case .tags: TagsListView().navigationTitle("Tags")
+                        }
                     }
                 }
             }
-            .navigationDestination(for: StationQuery.self) {
-                StationListView(query: $0)
-            }
-            .navigationDestination(for: StationInfo.self) {
-                StationInfoView(station: $0)
-            }
-        }
-    }
-
-    func modeView(for mode: BrowseStatonMode) -> some View {
-        Group {
-            switch mode {
-            case .countries: CountriesListView().navigationTitle("Countries")
-            case .tags: TagsListView().navigationTitle("Tags")
-            case .search: StationListView(query: StationQuery(title: "Search")).navigationTitle("Search")
-            }
+            .stationNavigationDestinations()
         }
     }
 }
@@ -195,6 +331,7 @@ struct CountriesListView: View {
                     Text(country.localizedName)
                     Spacer()
                     //Text("\(country.stationcount, format: .number)") // not supported in Skip
+                    //Text(country.stationcount.formatted())
                     Text(NumberFormatter.localizedString(from: country.stationcount as NSNumber, number: .decimal))
                 }
             } icon: {
@@ -235,15 +372,22 @@ struct TagsListView: View {
                 }
                 // second section is for the remaining tag names
                 Section {
-                    Button("More…") {
-                        withAnimation {
-                            showAdditionalTags = !showAdditionalTags
-                        }
-                    }
                     if showAdditionalTags {
                         // we still filter on stationcount > 10 because many stations create nonsense tags
                         ForEach(tags.filter({ $0.localizedTitle == nil && $0.stationcount > 10 }), id: \.name) { tag in
                             tagLink(tag)
+                        }
+                    }
+
+                    Button {
+                        withAnimation {
+                            showAdditionalTags = !showAdditionalTags
+                        }
+                    } label: {
+                        if !showAdditionalTags {
+                            Text(LocalizedStringResource("More…", comment: "button title to expand the list of tags in the browse stations view"))
+                        } else {
+                            Text(LocalizedStringResource("Show Less", comment: "button title to collapse the list of tags in the browse stations view"))
                         }
                     }
                 }
@@ -341,6 +485,7 @@ struct StationListView: View {
     @State var error: Error? = nil
     @State var loading = false
     @State var complete = true
+    let queryBatchSize = 50
 
     var body: some View {
         ZStack {
@@ -357,7 +502,7 @@ struct StationListView: View {
                             Text("Loading…")
                         }
                         .task(id: self.stations.count) {
-                            logger.log("loading from \(stations.count)")
+                            logger.log("loading from \(stations.count) (loading=\(loading))")
                             await loadStations()
                         }
                     }
@@ -365,8 +510,12 @@ struct StationListView: View {
             }
             if stations.isEmpty && complete && !loading {
                 if self.query.params.queryItems.isEmpty {
-                    Text("Search Stations")
-                        .font(.title)
+                    VStack {
+                        Image(systemName: "magnifyingglass")
+                            .font(.largeTitle)
+                        Text("Search Stations")
+                            .font(.title)
+                    }
                 } else {
                     Text("No Stations Found")
                         .font(.title)
@@ -416,15 +565,13 @@ struct StationListView: View {
         }
         do {
             let (sortAttr, reverse) = query.sortOption.sortAttribute
-            let params = QueryParams(order: sortAttr, reverse: reverse, hidebroken: true, offset: self.stations.count, limit: 100)
+            let params = QueryParams(order: sortAttr, reverse: reverse, hidebroken: true, offset: self.stations.count, limit: queryBatchSize)
             logger.log("loading stations for \(query.params.queryItems)…")
             var stations = try await APIClient.shared.searchStations(query: query.params, params: params)
-            if stations.isEmpty {
-                complete = true
-            } else {
-                complete = false
+            self.complete = stations.count < queryBatchSize
+            if !stations.isEmpty {
                 stations = cleanup(stations)
-                self.updateStations(unique(self.stations + stations))
+                self.updateStations(ViewModel.unique(self.stations + stations))
             }
             logger.log("loaded \(self.stations.count) stations")
         } catch {
@@ -441,22 +588,6 @@ struct StationListView: View {
         }
     }
 
-    /// Ensure that no duplicate IDs exist in the list of stations, which will crash on Android with:
-    /// `07-11 17:48:47.636 11894 11894 E AndroidRuntime: java.lang.IllegalArgumentException: Key "9617A958-0601-11E8-AE97-52543BE04C81" was already used. If you are using LazyColumn/Row please make sure you provide a unique key for each item.`
-    func unique(_ stations: [StationInfo]) -> [StationInfo] {
-        var uniqueStations: [StationInfo] = []
-        #if !SKIP
-        uniqueStations.reserveCapacity(stations.count)
-        #endif
-        var ids = Set<StationInfo.ID>()
-        for station in stations {
-            if ids.insert(station.id).inserted {
-                uniqueStations.append(station)
-            }
-        }
-        return uniqueStations
-    }
-
     func cleanup(_ stations: [StationInfo]) -> [StationInfo] {
         stations.map {
             var station = $0
@@ -468,25 +599,24 @@ struct StationListView: View {
 
     func stationRow(_ station: StationInfo) -> some View {
         NavigationLink(value: station) {
-            Label {
-                HStack {
-                    VStack(alignment: .leading) {
-                        Text(station.name.trimmingCharacters(in: .whitespacesAndNewlines))
-                            .font(.headline)
-                            .lineLimit(1)
-                        Text(station.localizedTagList)
-                            .font(.subheadline)
-                            .lineLimit(1)
-                    }
-                    //Text(station.languagecodes ?? "")
-                }
-            } icon: {
-                // TODO: use an image based on the tag(s)…
-                //if let favicon = station.favicon {
-                // too much noise for the station list
-                //AsyncImage(url: URL(string: favicon))
-                //}
-            }
+            StationInfoRowView(station: station, showIcon: false)
+        }
+    }
+}
+
+struct StationInfoFormView: View {
+    let title: LocalizedStringResource
+    let value: String?
+
+    var body: some View {
+        HStack(alignment: .top) {
+            Text(title)
+                .frame(alignment: .leading)
+            Spacer()
+            Text(value ?? "")
+                .lineLimit(2)
+                .multilineTextAlignment(.trailing)
+                .frame(alignment: .trailing)
         }
     }
 }
@@ -496,31 +626,72 @@ struct StationInfoView: View {
     let station: StationInfo
 
     var body: some View {
-        //VideoPlayer(player: AVPlayer(url: URL(string: station.url_resolved ?? station.url)!))
-
         Form {
-            #if !SKIP
-            LabeledContent("Name", value: station.name)
-            LabeledContent("ID", value: station.stationuuid.uuidString)
-            Text("Bit Rate").badge(station.bitrate ?? 0)
-            #endif
-            //LabeledContent("Bit Rate", value: station.bitrate)
+            StationInfoFormView(title: LocalizedStringResource("Station Name"), value: station.name)
+            StationInfoFormView(title: LocalizedStringResource("Country"), value: station.country)
+            StationInfoFormView(title: LocalizedStringResource("Bit Rate"), value: station.bitrate?.description)
+            StationInfoFormView(title: LocalizedStringResource("Tags"), value: station.tags)
+            if let homepage = station.homepage, let homepageURL = URL(string: homepage) {
+                Link(homepage, destination: homepageURL)
+            }
 
-            Button("Play") {
-                viewModel.play(station)
-            }
-            Button("Pause") {
-                viewModel.pause(station)
-            }
-            Button("Favorite") {
-                viewModel.favorite(station)
+            if let favicon = station.favicon, let faviconURL = URL(string: favicon) {
+                AsyncImage(url: faviconURL) { image in
+                    image.resizable()
+                } placeholder: {
+                }
+                .scaledToFit()
+                //.frame(width: 100, height: 100)
             }
         }
-            .navigationTitle(station.name)
+        .navigationTitle(station.name)
+        .navigationBarTitleDisplayMode(.inline)
+        .toolbar {
+            ToolbarItem {
+                Button {
+                    if viewModel.isFavorite(station) {
+                        viewModel.unfavorite(station)
+                    } else {
+                        viewModel.favorite(station)
+                    }
+                } label: {
+                    if viewModel.isFavorite(station) {
+                        Image("star_star_fill1_symbol", bundle: .module, label: Text("Unfavorite"))
+                            .resizable()
+                            .foregroundStyle(Color.yellow)
+                            .frame(width: 30, height: 30)
+                    } else {
+                        Image("star_star_fill1_symbol", bundle: .module, label: Text("Favorite"))
+                            .resizable()
+                            .foregroundStyle(Color.gray)
+                            .frame(width: 30, height: 30)
+                    }
+                }
+            }
 
+            ToolbarItem {
+                if viewModel.isPlaying(station) {
+                    Button {
+                        viewModel.pause()
+                    } label: {
+                        Image("pause_pause_fill1_symbol", bundle: .module, label: Text("Pause"))
+                            .resizable()
+                            .font(.title)
+                            .frame(width: 25, height: 25)
+                    }
+                } else {
+                    Button {
+                        viewModel.play(station)
+                    } label: {
+                        Image("play_arrow_play_arrow_fill1_symbol", bundle: .module, label: Text("Play"))
+                            .resizable()
+                            .frame(width: 25, height: 25)
+                    }
+                }
+            }
+        }
     }
 }
-
 
 extension View {
     /// Converts a country code like "US" into the Emoji symbol for the country's flag
@@ -694,77 +865,58 @@ extension TagInfo {
     }
 }
 
-struct ItemListView: View {
+struct FavoritesListView: View {
     @Environment(ViewModel.self) var viewModel: ViewModel
 
     var body: some View {
         List {
-            ForEach(viewModel.items) { item in
+            ForEach(viewModel.favorites) { item in
                 NavigationLink(value: item) {
-                    Label {
-                        Text(item.name)
-                    } icon: {
-//                        if item.favorite {
-//                            Image(systemName: "star.fill")
-//                                .foregroundStyle(.yellow)
-//                        }
-                    }
+                    StationInfoRowView(station: item, showIcon: true)
                 }
             }
             .onDelete { offsets in
-                viewModel.items.remove(atOffsets: offsets)
+                viewModel.favorites.remove(atOffsets: offsets)
             }
             .onMove { fromOffsets, toOffset in
-                viewModel.items.move(fromOffsets: fromOffsets, toOffset: toOffset)
+                viewModel.favorites.move(fromOffsets: fromOffsets, toOffset: toOffset)
             }
-        }
-        .navigationDestination(for: Item.self) { item in
-            ItemView(item: item)
-                .navigationTitle(item.name)
-        }
-        .toolbar {
-//            ToolbarItemGroup {
-//                Button {
-//                    withAnimation {
-//                        viewModel.items.insert(Item(), at: 0)
-//                    }
-//                } label: {
-//                    Label("Add", systemImage: "plus")
-//                }
-//            }
         }
     }
 }
 
-struct ItemView: View {
-    @State var item: Item
+struct StationInfoRowView: View {
+    let station: StationInfo
+    let showIcon: Bool
     @Environment(ViewModel.self) var viewModel: ViewModel
-    @Environment(\.dismiss) var dismiss
 
     var body: some View {
-        Form {
-            TextField("Title", text: $item.name)
-                .textFieldStyle(.roundedBorder)
-//            Toggle("Favorite", isOn: $item.favorite)
-//            DatePicker("Date", selection: $item.date)
-//            Text("Notes").font(.title3)
-//            TextEditor(text: $item.notes)
-//                .border(Color.secondary, width: 1.0)
-        }
-        .navigationBarBackButtonHidden()
-        .toolbar {
-            ToolbarItem(placement: .cancellationAction) {
-                Button("Cancel") {
-                    dismiss()
+        Label {
+            HStack {
+                if showIcon, let favicon = station.favicon, let faviconURL = URL(string: favicon) {
+                    AsyncImage(url: faviconURL) { image in
+                        image.resizable()
+                    } placeholder: {
+                    }
+                    .scaledToFit()
+                    .frame(width: 50, height: 50)
                 }
-            }
-            ToolbarItem(placement: .confirmationAction) {
-                Button("Save") {
-                    viewModel.save(item: item)
-                    dismiss()
+                VStack(alignment: .leading) {
+                    Text(station.name.trimmingCharacters(in: .whitespacesAndNewlines))
+                        .font(.headline)
+                        .lineLimit(1)
+                    Text(station.localizedTagList)
+                        .font(.subheadline)
+                        .lineLimit(1)
                 }
-                .disabled(!viewModel.isUpdated(item))
+                //Text(station.languagecodes ?? "")
             }
+        } icon: {
+            // TODO: use an image based on the tag(s)…
+            //if let favicon = station.favicon {
+            // too much noise for the station list
+            //AsyncImage(url: URL(string: favicon))
+            //}
         }
     }
 }
