@@ -202,14 +202,20 @@ struct BrowseStationsView: View {
                     TabView(selection: $selectedStationMode) {
                         CountriesListView()
                             .navigationTitle("Countries")
+                            #if os(iOS) || os(Android)
                             .navigationBarTitleDisplayMode(.large)
+                            #endif
                             .tag(BrowseStatonMode.countries)
                         TagsListView()
                             .navigationTitle("Tags")
+                            #if os(iOS) || os(Android)
                             .navigationBarTitleDisplayMode(.large)
+                            #endif
                             .tag(BrowseStatonMode.tags)
                     }
+                    #if os(iOS) || os(Android)
                     .tabViewStyle(.page(indexDisplayMode: .never))
+                    #endif
                     .toolbar {
                         ToolbarItem(placement: pickerPlacement) {
                             Picker("Selection", selection: $selectedStationMode) {
@@ -645,7 +651,9 @@ struct StationInfoView: View {
             }
         }
         .navigationTitle(station.name)
+        #if os(iOS) || os(Android)
         .navigationBarTitleDisplayMode(.inline)
+        #endif
         .toolbar {
             ToolbarItem {
                 Button {
