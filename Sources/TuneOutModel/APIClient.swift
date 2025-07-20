@@ -362,58 +362,58 @@ public struct StationQueryParams: Hashable, Sendable {
         var items: [URLQueryItem] = []
 
         if let name = name {
-            items.append(URLQueryItem(name: "name", value: "\(name)"))
+            items.append(URLQueryItem(name: "name", value: name))
         }
         if let nameExact = nameExact {
-            items.append(URLQueryItem(name: "nameExact", value: "\(nameExact)"))
+            items.append(URLQueryItem(name: "nameExact", value: nameExact ? "true" : "false"))
         }
         if let country = country {
-            items.append(URLQueryItem(name: "country", value: "\(country)"))
+            items.append(URLQueryItem(name: "country", value: country))
         }
         if let countryExact = countryExact {
-            items.append(URLQueryItem(name: "countryExact", value: "\(countryExact)"))
+            items.append(URLQueryItem(name: "countryExact", value: countryExact ? "true" : "false"))
         }
         if let countrycode = countrycode {
-            items.append(URLQueryItem(name: "countrycode", value: "\(countrycode)"))
+            items.append(URLQueryItem(name: "countrycode", value: countrycode))
         }
         if let state = state {
-            items.append(URLQueryItem(name: "state", value: "\(state)"))
+            items.append(URLQueryItem(name: "state", value: state))
         }
         if let stateExact = stateExact {
-            items.append(URLQueryItem(name: "stateExact", value: "\(stateExact)"))
+            items.append(URLQueryItem(name: "stateExact", value: stateExact ? "true" : "false"))
         }
         if let language = language {
-            items.append(URLQueryItem(name: "language", value: "\(language)"))
+            items.append(URLQueryItem(name: "language", value: language))
         }
         if let languageExact = languageExact {
-            items.append(URLQueryItem(name: "languageExact", value: "\(languageExact)"))
+            items.append(URLQueryItem(name: "languageExact", value: languageExact ? "true" : "false"))
         }
         if let tag = tag {
-            items.append(URLQueryItem(name: "tag", value: "\(tag)"))
+            items.append(URLQueryItem(name: "tag", value: tag))
         }
         if let tagExact = tagExact {
-            items.append(URLQueryItem(name: "tagExact", value: "\(tagExact)"))
+            items.append(URLQueryItem(name: "tagExact", value: tagExact ? "true" : "false"))
         }
         if let tagList = tagList {
-            items.append(URLQueryItem(name: "tagList", value: "\(tagList)"))
+            items.append(URLQueryItem(name: "tagList", value: tagList))
         }
         if let codec = codec {
-            items.append(URLQueryItem(name: "codec", value: "\(codec)"))
+            items.append(URLQueryItem(name: "codec", value: codec))
         }
         if let bitrateMin = bitrateMin {
-            items.append(URLQueryItem(name: "bitrateMin", value: "\(bitrateMin)"))
+            items.append(URLQueryItem(name: "bitrateMin", value: bitrateMin.description))
         }
         if let bitrateMax = bitrateMax {
-            items.append(URLQueryItem(name: "bitrateMax", value: "\(bitrateMax)"))
+            items.append(URLQueryItem(name: "bitrateMax", value: bitrateMax.description))
         }
         if let has_geo_info = has_geo_info {
-            items.append(URLQueryItem(name: "has_geo_info", value: "\(has_geo_info)"))
+            items.append(URLQueryItem(name: "has_geo_info", value: has_geo_info ? "true" : "false"))
         }
         if let has_extended_info = has_extended_info {
-            items.append(URLQueryItem(name: "has_extended_info", value: "\(has_extended_info)"))
+            items.append(URLQueryItem(name: "has_extended_info", value: has_extended_info ? "true" : "false"))
         }
         if let is_https = is_https {
-            items.append(URLQueryItem(name: "is_https", value: "\(is_https)"))
+            items.append(URLQueryItem(name: "is_https", value: is_https ? "true" : "false"))
         }
 
         return items

@@ -16,13 +16,12 @@ let package = Package(
         .package(url: "https://source.skip.tools/skip-foundation.git", from: "1.0.0"),
         .package(url: "https://source.skip.tools/skip-model.git", from: "1.0.0"),
         .package(url: "https://source.skip.tools/skip-av.git", "0.0.0"..<"2.0.0"),
-        .package(url: "https://source.skip.tools/skip-sql.git", "0.0.0"..<"2.0.0"),
+        //.package(url: "https://source.skip.tools/skip-sql.git", "0.0.0"..<"2.0.0"),
     ],
     targets: [
         .target(name: "TuneOut", dependencies: [
             "TuneOutModel",
             .product(name: "SkipUI", package: "skip-ui"),
-            .product(name: "SkipAV", package: "skip-av"),
         ], resources: [.process("Resources")], plugins: [.plugin(name: "skipstone", package: "skip")]),
         .testTarget(name: "TuneOutTests", dependencies: [
             "TuneOut",
@@ -31,7 +30,7 @@ let package = Package(
         .target(name: "TuneOutModel", dependencies: [
             .product(name: "SkipFoundation", package: "skip-foundation"),
             .product(name: "SkipModel", package: "skip-model"),
-            .product(name: "SkipSQL", package: "skip-sql")
+            .product(name: "SkipAV", package: "skip-av"),
         ], resources: [.process("Resources")], plugins: [.plugin(name: "skipstone", package: "skip")]),
         .testTarget(name: "TuneOutModelTests", dependencies: [
             "TuneOutModel",
