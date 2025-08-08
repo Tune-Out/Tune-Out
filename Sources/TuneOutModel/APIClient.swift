@@ -2,8 +2,6 @@
 
 import Foundation
 
-let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
-
 /// “Please send a descriptive User-Agent in your HTTP requests, which makes it easier for me to get in touch with developers to help with the usage of the API. Something like appname/appversion, for example Cool Radio App/1.2. This also helps me to know which apps are using this service, so I can keep the list of apps up to date and tell people in which ways they can use this service.” — https://docs.radio-browser.info/#using-the-api
 let userAgent = "Tune-Out/\(appVersion)"
 
@@ -84,13 +82,13 @@ public struct APIClient {
     }
 
     /// https://docs.radio-browser.info/#list-of-radio-stations
-    public func fetchStations(filter: StationFilter? = nil, params: QueryParams? = nil) async throws -> [StationInfo] {
-        try await fetchArray(StationInfo.self, endpoint: "stations", filter: filter?.asQuery, params: params?.queryItems)
+    public func fetchStations(filter: StationFilter? = nil, params: QueryParams? = nil) async throws -> [APIStationInfo] {
+        try await fetchArray(APIStationInfo.self, endpoint: "stations", filter: filter?.asQuery, params: params?.queryItems)
     }
 
     /// https://docs.radio-browser.info/#advanced-station-search
-    public func searchStations(query: StationQueryParams, params: QueryParams? = nil) async throws -> [StationInfo] {
-        try await fetchArray(StationInfo.self, endpoint: "stations/search", filter: nil, params: query.queryItems + (params?.queryItems ?? []))
+    public func searchStations(query: StationQueryParams, params: QueryParams? = nil) async throws -> [APIStationInfo] {
+        try await fetchArray(APIStationInfo.self, endpoint: "stations/search", filter: nil, params: query.queryItems + (params?.queryItems ?? []))
     }
 
     public func click(id: UUID) async throws -> ClickResponse {
@@ -139,11 +137,11 @@ public enum StationFilter {
     }
 }
 
-public struct StationInfo: Hashable, Sendable, Codable {
+public struct APIStationInfo: StationInfo, Hashable, Sendable, Codable {
     // changeuuid: 01234567-89ab-cdef-0123-456789abcdef
     public var changeuuid: UUID?
     // stationuuid: 01234567-89ab-cdef-0123-456789abcdef
-    public var stationuuid: UUID
+    public var stationuuid: UUID?
     // serveruuid: 01234567-89ab-cdef-0123-456789abcdef
     public var serveruuid: UUID?
     // name: Best Radio
@@ -253,8 +251,8 @@ public struct StationInfo: Hashable, Sendable, Codable {
     }
 }
 
-extension StationInfo: Identifiable {
-    public typealias ID = UUID
+extension APIStationInfo: Identifiable {
+    public typealias ID = UUID?
     public var id: ID { stationuuid }
 }
 
