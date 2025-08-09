@@ -118,6 +118,11 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
     }
 
     public func play(_ station: APIStationInfo) {
+        guard let url = URL(string: station.url) else {
+            logger.error("cannot parse station url: \(station.url)")
+            return
+        }
+
         // “You can activate the audio session at any time after setting its category, but it’s recommended to defer this call until your app begins audio playback. Deferring the call ensures that you don’t prematurely interrupt any other background audio that may be in progress.”
         if !Self.audioSessionActivated {
             Self.audioSessionActivated = true
@@ -126,10 +131,6 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
 
         self.nowPlaying = station
 
-        guard let url = URL(string: station.url) else {
-            logger.error("cannot parse station url: \(station.url)")
-            return
-        }
         let item = AVPlayerItem(url: url)
         configurePlayerListener(for: item)
         self.player.replaceCurrentItem(with: item)

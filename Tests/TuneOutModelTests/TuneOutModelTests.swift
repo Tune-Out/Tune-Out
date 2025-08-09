@@ -105,7 +105,7 @@ final class TuneOutModelTests: XCTestCase {
         let db = try DatabaseManager(url: nil)
         try db.initializeSchema()
 
-        XCTAssertEqual(try db.fetchAllCollections().map(\.name), [StationCollection.favoritesCollectionName, StationCollection.recentsCollectionName])
+        XCTAssertEqual(try db.fetchCollections(standard: true).map(\.name), [StationCollection.favoritesCollectionName, StationCollection.recentsCollectionName])
 
         let collection1 = try db.ctx.insert(StationCollection(name: "Collection 1", sortOrder: 1.0))
         XCTAssertEqual(3, collection1.id) // starts at 3 because the first 2 are auto-initialized
