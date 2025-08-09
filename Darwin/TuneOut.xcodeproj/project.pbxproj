@@ -36,7 +36,6 @@
 		496EB72F2A6AE4DE00C1253A /* Skip.env */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Skip.env; path = ../Skip.env; sourceTree = "<group>"; };
 		496EB72F2A6AE4DE00C1253B /* TuneOut.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = TuneOut.xcconfig; sourceTree = "<group>"; };
 		496EB72F2A6AE4DE00C1253C /* README.md */ = {isa = PBXFileReference; lastKnownFileType = net.daringfireball.markdown; name = README.md; path = ../README.md; sourceTree = "<group>"; };
-		4995806C2E08E33C00AFD750 /* APIClient.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = APIClient.swift; path = ../Sources/TuneOutModel/APIClient.swift; sourceTree = "<group>"; };
 		499AB9082B0581F4005E8330 /* plugins */ = {isa = PBXFileReference; lastKnownFileType = folder; name = plugins; path = ../../Intermediates.noindex/BuildToolPluginIntermediates; sourceTree = BUILT_PRODUCTS_DIR; };
 		49F90C2B2A52156200F06D93 /* Main.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; name = Main.swift; path = Sources/Main.swift; sourceTree = SOURCE_ROOT; };
 		49F90C2F2A52156300F06D93 /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
@@ -74,7 +73,6 @@
 		49F90C1F2A52156200F06D93 = {
 			isa = PBXGroup;
 			children = (
-				4995806C2E08E33C00AFD750 /* APIClient.swift */,
 				496EB72F2A6AE4DE00C1253C /* README.md */,
 				496EB72F2A6AE4DE00C1253A /* Skip.env */,
 				496EB72F2A6AE4DE00C1253B /* TuneOut.xcconfig */,

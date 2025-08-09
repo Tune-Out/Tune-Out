@@ -3,6 +3,7 @@
 import Foundation
 import Observation
 import SkipAV
+import SkipSQL
 import OSLog
 #if canImport(MediaPlayer)
 import MediaPlayer
@@ -11,6 +12,8 @@ import MediaPlayer
 /// A logger for the TuneOutModel module.
 let logger: Logger = Logger(subsystem: "tune.out.model", category: "TuneOutModel")
 
+let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String ?? "Unknown"
+
 /// The Observable ViewModel used by the application.
 @Observable @MainActor public final class ViewModel {
     public let player: AVQueuePlayer = AVQueuePlayer()
@@ -18,18 +21,45 @@ let logger: Logger = Logger(subsystem: "tune.out.model", category: "TuneOutModel
     public var curentTrackTitle: String? = nil
     private static var audioSessionActivated = false
 
+    internal let db = try! DatabaseManager(url: URL.applicationSupportDirectory.appendingPathComponent("tuneout.sqlite"))
+    /// Any changes to the database will incremenet this counter via the update hook;
+    /// We use this for views to re-execute any queries performed in a `withDatabase` block.
+    private var databaseChanges = Int64(0)
+
     // TODO: enable setting hidebroken from user preference
     public let queryParams = QueryParams(order: nil, reverse: nil, hidebroken: true, offset: nil, limit: nil)
 
-    public var favorites: [StationInfo] = loadFavorites() {
+    //@available(*, deprecated, message: "TODO: replace with DatabaseManager collection")
+    public var favorites: [APIStationInfo] = loadFavorites() {
         didSet { saveFavorites() }
     }
 
-    public var nowPlaying: StationInfo? = loadNowPlaying().first {
+    //@available(*, deprecated, message: "TODO: replace with DatabaseManager collection")
+    public var nowPlaying: APIStationInfo? = loadNowPlaying().first {
         didSet { saveNowPlaying() }
     }
 
     public init() {
+        // watch the database for any changes and increment the databaseChanges counter whenever
+        // something is updated, which will cause anything in a `trackingQuery` block
+        // to be re-executed
+        db.ctx.onUpdate(hook: { action, rowid, dbname, tblname in
+            logger.log("onUpdate: \(action.description) rowid=\(rowid) tblname=\(tblname)")
+            self.databaseChanges += 1
+        })
+    }
+
+    @discardableResult public func withDatabase<T>(_ actionTitle: String, block: (DatabaseManager) throws -> T) -> T? {
+        do {
+            // access the changes counter so we re-execute this block when it changes
+            let changes = self.databaseChanges
+            let _ = changes
+            logger.debug("tryAction: \(actionTitle)")
+            return try block(db)
+        } catch {
+            logger.error("tryAction: error \(actionTitle): \(error)")
+            return nil
+        }
     }
 
     /// Configure the app for playback in the background
@@ -50,39 +80,49 @@ let logger: Logger = Logger(subsystem: "tune.out.model", category: "TuneOutModel
         favorites.removeAll()
     }
 
-    public func isUpdated(_ item: StationInfo) -> Bool {
-        item != favorites.first { i in
-            i.id == item.id
-        }
-    }
-
-    public func update(favorite: StationInfo) {
-        favorites = favorites.map { item in
-            item.id == favorite.id ? favorite : item
-        }
-    }
-    
     /// Returns true if the given station is in the favorites list
-    public func isFavorite(_ station: StationInfo) -> Bool {
+    public func isFavorite(_ station: APIStationInfo) -> Bool {
         favorites.first { $0.id == station.id } != nil
     }
 
     /// Removes the given station from the favorites list
-    public func unfavorite(_ station: StationInfo) {
+    public func unfavorite(_ station: APIStationInfo) {
         favorites = favorites.filter { $0.id != station.id }
+        do {
+            if let stationID = station.stationuuid,
+               let existingStation = try db.fetchStation(stationuuid: stationID) {
+                try db.removeStation(existingStation, fromCollection: db.favoritesCollection)
+            }
+        } catch {
+            print("### error unfavorite: \(error)")
+        }
     }
 
     /// Adds the given station to the favorites list
-    public func favorite(_ station: StationInfo) {
-        unfavorite(station)
+    public func favorite(_ station: APIStationInfo) {
+        if favorites.contains(station) {
+            unfavorite(station)
+        }
         favorites.append(station)
+
+        do {
+            let storedStation = try db.saveStation(StoredStationInfo(info: station))
+            try db.addStation(storedStation, toCollection: db.favoritesCollection)
+        } catch {
+            print("### error favorite: \(error)")
+        }
     }
 
-    public func isPlaying(_ station: StationInfo) -> Bool {
+    public func isPlaying(_ station: APIStationInfo) -> Bool {
         self.playing && nowPlaying?.id == station.id
     }
 
-    public func play(_ station: StationInfo) {
+    public func play(_ station: APIStationInfo) {
+        guard let url = URL(string: station.url) else {
+            logger.error("cannot parse station url: \(station.url)")
+            return
+        }
+
         // “You can activate the audio session at any time after setting its category, but it’s recommended to defer this call until your app begins audio playback. Deferring the call ensures that you don’t prematurely interrupt any other background audio that may be in progress.”
         if !Self.audioSessionActivated {
             Self.audioSessionActivated = true
@@ -90,10 +130,7 @@ let logger: Logger = Logger(subsystem: "tune.out.model", category: "TuneOutModel
         }
 
         self.nowPlaying = station
-        guard let url = URL(string: station.url) else {
-            logger.error("cannot parse station url: \(station.url)")
-            return
-        }
+
         let item = AVPlayerItem(url: url)
         configurePlayerListener(for: item)
         self.player.replaceCurrentItem(with: item)
@@ -166,6 +203,26 @@ let logger: Logger = Logger(subsystem: "tune.out.model", category: "TuneOutModel
     #endif
 }
 
+public protocol StationInfo {
+    // name: Best Radio
+    var name: String { get }
+
+    var stationuuid: UUID? { get }
+
+    // url: http://www.example.com/test.pls
+    var url: String { get }
+
+    // favicon: https://www.example.com/icon.png
+    var favicon: String? { get }
+
+    // tags: jazz,pop,rock,indie
+    var tags: String? { get }
+
+    // countrycode: US
+    var countrycode: String? { get }
+}
+
+
 #if SKIP
 final class PlayerListener: androidx.media3.common.Player.Listener {
     let metadataCallback: (androidx.media3.common.MediaMetadata) -> ()
@@ -227,10 +284,11 @@ extension AVMetadataItem {
 
 /// Utilities for defaulting and persising the items in the list
 extension ViewModel {
+
     private static let favoritesPath = URL.applicationSupportDirectory.appendingPathComponent("favorites.json")
     private static let nowPlayingPath = URL.applicationSupportDirectory.appendingPathComponent("playing.json")
 
-    fileprivate static func loadNowPlaying() -> [StationInfo] {
+    fileprivate static func loadNowPlaying() -> [APIStationInfo] {
         loadItems(savePath: nowPlayingPath)
     }
 
@@ -240,7 +298,7 @@ extension ViewModel {
         }
     }
 
-    fileprivate static func loadFavorites() -> [StationInfo] {
+    fileprivate static func loadFavorites() -> [APIStationInfo] {
         loadItems(savePath: favoritesPath)
     }
 
@@ -248,7 +306,7 @@ extension ViewModel {
         saveItems(savePath: Self.favoritesPath, items: favorites)
     }
 
-    private static func loadItems(savePath: URL) -> [StationInfo] {
+    private static func loadItems(savePath: URL) -> [APIStationInfo] {
         do {
             let start = Date.now
             let data = try Data(contentsOf: savePath)
@@ -256,7 +314,7 @@ extension ViewModel {
                 let end = Date.now
                 logger.info("loaded \(data.count) bytes from \(savePath.path) in \(end.timeIntervalSince(start)) seconds")
             }
-            return unique(try JSONDecoder().decode([StationInfo].self, from: data))
+            return unique(try JSONDecoder().decode([APIStationInfo].self, from: data))
         } catch {
             // perhaps the first launch, or the data could not be read
             logger.warning("failed to load data from \(savePath), using defaultItems: \(error)")
@@ -264,7 +322,7 @@ extension ViewModel {
         }
     }
 
-    private func saveItems(savePath: URL, items: [StationInfo]) {
+    private func saveItems(savePath: URL, items: [APIStationInfo]) {
         do {
             let start = Date.now
             let data = try JSONEncoder().encode(items)
@@ -279,12 +337,12 @@ extension ViewModel {
 
     /// Ensure that no duplicate IDs exist in the list of stations, which will crash on Android with:
     /// `07-11 17:48:47.636 11894 11894 E AndroidRuntime: java.lang.IllegalArgumentException: Key "9617A958-0601-11E8-AE97-52543BE04C81" was already used. If you are using LazyColumn/Row please make sure you provide a unique key for each item.`
-    public static func unique(_ stations: [StationInfo]) -> [StationInfo] {
-        var uniqueStations: [StationInfo] = []
+    public static func unique(_ stations: [APIStationInfo]) -> [APIStationInfo] {
+        var uniqueStations: [APIStationInfo] = []
         #if !SKIP
         uniqueStations.reserveCapacity(stations.count)
         #endif
-        var ids = Set<StationInfo.ID>()
+        var ids = Set<APIStationInfo.ID>()
         for station in stations {
             if ids.insert(station.id).inserted {
                 uniqueStations.append(station)
@@ -292,5 +350,4 @@ extension ViewModel {
         }
         return uniqueStations
     }
-
 }

@@ -2,6 +2,7 @@
 
 import SwiftUI
 import SkipAV
+import SkipSQL
 import TuneOutModel
 
 enum ContentTab: String, Hashable {
@@ -20,9 +21,8 @@ struct ContentView: View {
                 .tag(ContentTab.browse)
 
             NavigationStack {
-                // CollectionsListView() // FIXME
-                FavoritesListView()
-                    .navigationTitle("Favorites")
+                CollectionsListView()
+                    .navigationTitle("Collections")
                     .stationNavigationDestinations()
             }
                 .tabItem { Label("Collections", systemImage: "star.fill") }
@@ -68,8 +68,11 @@ extension View {
         .navigationDestination(for: StationQuery.self) {
             StationListView(query: $0)
         }
-        .navigationDestination(for: StationInfo.self) {
+        .navigationDestination(for: APIStationInfo.self) {
             StationInfoView(station: $0)
+        }
+        .navigationDestination(for: StationCollection.self) {
+            StationCollectionView(collection: $0)
         }
     }
 }
@@ -182,6 +185,7 @@ struct MusicPlayerView: View {
 
 struct BrowseStationsView: View {
     enum BrowseStatonMode: Hashable {
+        //case languages // languages are not normalized and are full of garbage
         case countries
         case tags
     }
@@ -200,6 +204,12 @@ struct BrowseStationsView: View {
             Group {
                 if usePicker {
                     TabView(selection: $selectedStationMode) {
+                        //LanguagesListView()
+                        //    .navigationTitle("Languages")
+                        //    #if os(iOS) || os(Android)
+                        //    .navigationBarTitleDisplayMode(.large)
+                        //    #endif
+                        //    .tag(BrowseStatonMode.languages)
                         CountriesListView()
                             .navigationTitle("Countries")
                             #if os(iOS) || os(Android)
@@ -219,6 +229,7 @@ struct BrowseStationsView: View {
                     .toolbar {
                         ToolbarItem(placement: pickerPlacement) {
                             Picker("Selection", selection: $selectedStationMode) {
+                                //Text("Languages").tag(BrowseStatonMode.languages)
                                 Text("Countries").tag(BrowseStatonMode.countries)
                                 Text("Tags").tag(BrowseStatonMode.tags)
                                 //Text("Search").tag(BrowseStatonMode.tags)
@@ -229,12 +240,14 @@ struct BrowseStationsView: View {
                     }
                 } else {
                     List {
+                        //NavigationLink("Languages", value: BrowseStatonMode.languages)
                         NavigationLink("Countries", value: BrowseStatonMode.countries)
                         NavigationLink("Tags", value: BrowseStatonMode.tags)
                     }
                     .navigationTitle(Text("Browse Stations"))
                     .navigationDestination(for: BrowseStatonMode.self) { mode in
                         switch mode {
+                        //case .languages: LanguagesListView().navigationTitle("Languages")
                         case .countries: CountriesListView().navigationTitle("Countries")
                         case .tags: TagsListView().navigationTitle("Tags")
                         }
@@ -246,12 +259,16 @@ struct BrowseStationsView: View {
     }
 }
 
-struct CountriesListView: View {
+struct LanguagesListView: View {
     @Environment(ViewModel.self) var viewModel: ViewModel
     @State var sortOption: StationGroupSortOption = .name
-    @State var countries: [CountryInfo] = []
+    @State var languages: [LanguageInfo] = []
     @State var loading = false
     @State var error: Error? = nil
+
+    var currentLanguageCode: String? {
+        Locale.current.language.languageCode?.identifier
+    }
 
     var body: some View {
         List {
@@ -264,12 +281,122 @@ struct CountriesListView: View {
                 Text("Error: \(error.localizedDescription)")
             } else {
                 Section {
-                    ForEach(countries.filter({ $0.name == Locale.current.region?.identifier }), id: \.name) { country in
+                    ForEach(languages.filter({ $0.name == currentLanguageCode }), id: \.name) { language in
+                        languageLink(language)
+                    }
+                }
+                Section {
+                    ForEach(languages.filter({ $0.name != currentLanguageCode }), id: \.name) { language in
+                        languageLink(language)
+                    }
+                }
+            }
+        }
+        .toolbar {
+            ToolbarItem {
+                Picker(selection: $sortOption) {
+                    ForEach(StationGroupSortOption.allCases) { opt in
+                        Text(opt.localizedTitle)
+                    }
+                } label: {
+                    Label {
+                        Text("Sort")
+                    } icon: {
+                        Image("Sort", bundle: .module)
+                    }
+
+                }
+                .pickerStyle(.menu)
+                .onChange(of: sortOption) {
+                    withAnimation {
+                        sortLanguages()
+                    }
+                }
+            }
+        }
+        .task {
+            if self.languages.isEmpty {
+                await loadLanguages()
+            }
+        }
+        .refreshable {
+            await loadLanguages()
+        }
+    }
+
+    func loadLanguages() async {
+        self.loading = true
+        self.error = nil
+        defer {
+            self.loading = false
+        }
+        do {
+            logger.log("loading languages…")
+            let languages = try await APIClient.shared.fetchLanguages(params: viewModel.queryParams).filter {
+                $0.name == $0.name.uppercased()
+            }
+            withAnimation {
+                self.languages = languages
+                sortLanguages()
+            }
+            logger.log("loaded \(self.languages.count) languages")
+        } catch {
+            logger.error("error loading languages: \(error)")
+            self.error = error
+        }
+    }
+
+    func languageLink(_ language: LanguageInfo) -> some View {
+        NavigationLink(value: StationQuery(title: language.localizedName, params: StationQueryParams(language: language.name, languageExact: true))) {
+            Label {
+                HStack {
+                    Text(language.localizedName)
+                    Spacer()
+                    //Text("\(country.stationcount, format: .number)") // not supported in Skip
+                    //Text(country.stationcount.formatted())
+                    Text(NumberFormatter.localizedString(from: language.stationcount as NSNumber, number: .decimal))
+                }
+            } icon: {
+//                Text(emojiFlag(countryCode: country.normalizedCountryCode))
+//                    .font(.title)
+            }
+        }
+    }
+
+    func sortLanguages() {
+        self.languages = sortOption.sort(languages: self.languages)
+    }
+}
+
+
+struct CountriesListView: View {
+    @Environment(ViewModel.self) var viewModel: ViewModel
+    @State var sortOption: StationGroupSortOption = .name
+    @State var countries: [CountryInfo] = []
+    @State var loading = false
+    @State var error: Error? = nil
+
+    var currentRegionIdentifier: String? {
+        Locale.current.region?.identifier
+    }
+
+    var body: some View {
+        List {
+            if self.loading {
+                HStack {
+                    ProgressView()
+                    Text("Loading…")
+                }
+            } else if let error = self.error {
+                Text("Error: \(error.localizedDescription)")
+            } else {
+                Section {
+                    ForEach(countries.filter({ $0.name == currentRegionIdentifier }), id: \.name) { country in
                         countryLink(country)
                     }
                 }
                 Section {
-                    ForEach(countries.filter({ $0.name != Locale.current.region?.identifier }), id: \.name) { country in
+                    ForEach(countries.filter({ $0.name != currentRegionIdentifier }), id: \.name) { country in
                         countryLink(country)
                     }
                 }
@@ -487,7 +614,7 @@ extension StationQueryParams {
 struct StationListView: View {
     @State var query: StationQuery
     @Environment(ViewModel.self) var viewModel: ViewModel
-    @State var stations: [StationInfo] = []
+    @State var stations: [APIStationInfo] = []
     @State var error: Error? = nil
     @State var loading = false
     @State var complete = true
@@ -588,13 +715,13 @@ struct StationListView: View {
         }
     }
 
-    @MainActor func updateStations(_ stations: [StationInfo]) {
+    @MainActor func updateStations(_ stations: [APIStationInfo]) {
         withAnimation {
             self.stations = stations
         }
     }
 
-    func cleanup(_ stations: [StationInfo]) -> [StationInfo] {
+    func cleanup(_ stations: [APIStationInfo]) -> [APIStationInfo] {
         stations.map {
             var station = $0
             station.name = station.name.trimmingCharacters(in: .whitespacesAndNewlines)
@@ -603,7 +730,7 @@ struct StationListView: View {
         }
     }
 
-    func stationRow(_ station: StationInfo) -> some View {
+    func stationRow(_ station: APIStationInfo) -> some View {
         NavigationLink(value: station) {
             StationInfoRowView(station: station, showIcon: false)
         }
@@ -629,12 +756,12 @@ struct StationInfoFormView: View {
 
 struct StationInfoView: View {
     @Environment(ViewModel.self) var viewModel: ViewModel
-    let station: StationInfo
+    let station: APIStationInfo
 
     var body: some View {
         Form {
             StationInfoFormView(title: LocalizedStringResource("Station Name"), value: station.name)
-            StationInfoFormView(title: LocalizedStringResource("Country"), value: station.country)
+            StationInfoFormView(title: LocalizedStringResource("Country"), value: station.countrycode)
             StationInfoFormView(title: LocalizedStringResource("Bit Rate"), value: station.bitrate?.description)
             StationInfoFormView(title: LocalizedStringResource("Tags"), value: station.tags)
             if let homepage = station.homepage, let homepageURL = URL(string: homepage) {
@@ -762,9 +889,9 @@ enum StationSortOption: Identifiable, Hashable, CaseIterable {
 
     var sortAttribute: (attribute: String, reverse: Bool?) {
         switch self {
-        case .name: return (StationInfo.CodingKeys.name.rawValue, false)
-        case .popularity: return (StationInfo.CodingKeys.votes.rawValue, true)
-        case .trend: return (StationInfo.CodingKeys.clicktrend.rawValue, true)
+        case .name: return (APIStationInfo.CodingKeys.name.rawValue, false)
+        case .popularity: return (APIStationInfo.CodingKeys.votes.rawValue, true)
+        case .trend: return (APIStationInfo.CodingKeys.clicktrend.rawValue, true)
         case .random: return ("random", nil)
         }
     }
@@ -796,6 +923,17 @@ enum StationGroupSortOption: Identifiable, Hashable, CaseIterable {
         }
     }
 
+    func sort(languages: [LanguageInfo]) -> [LanguageInfo] {
+        languages.sorted {
+            switch self {
+            case .name:
+                return $0.localizedName.localizedCaseInsensitiveCompare($1.localizedName) == .orderedAscending
+            case .stationCount:
+                return $0.stationcount > $1.stationcount
+            }
+        }
+    }
+
     func sort(tags: [TagInfo]) -> [TagInfo] {
         tags.sorted {
             switch self {
@@ -815,6 +953,17 @@ extension CountryInfo {
 
     var normalizedCountryCode: String {
         // TODO: fixup invalid names and convert to known country codes
+        self.name
+    }
+}
+
+extension LanguageInfo {
+    var localizedName: String {
+        Locale.current.localizedString(forLanguageCode: self.name) ?? self.name
+    }
+
+    var normalizedLanguageCode: String {
+        // TODO: fixup invalid names and convert to known language codes
         self.name
     }
 }
@@ -873,22 +1022,145 @@ extension TagInfo {
     }
 }
 
-struct FavoritesListView: View {
+struct CollectionsListView: View {
     @Environment(ViewModel.self) var viewModel: ViewModel
+    @State var addCollectionActive = false // whether we are showing the dialog for adding a new collection
+    @State var newCollectionName = ""
+    @FocusState var newCollectionNameFocused: Bool
+
+    var standardCollections: [StationCollection] {
+        viewModel.withDatabase("CollectionsListView.collections") { db in
+            try db.fetchCollections(standard: true)
+        } ?? []
+    }
+
+    var customCollections: [StationCollection] {
+        viewModel.withDatabase("CollectionsListView.collections") { db in
+            try db.fetchCollections(standard: false)
+        } ?? []
+    }
+
+    func isValidCollectionName(_ name: String) -> Bool {
+        !newCollectionName.isEmpty
+    }
+
+    var body: some View {
+        let standardCollections = self.standardCollections
+        let customCollections = self.customCollections
+        List {
+            Section {
+                ForEach(standardCollections) { item in
+                    NavigationLink(value: item) {
+                        Text(item.localizedName)
+                    }
+                }
+            }
+            Section {
+                ForEach(customCollections) { item in
+                    NavigationLink(value: item) {
+                        Text(item.localizedName)
+                    }
+                }
+                .onDelete { offsets in
+                    for collection in offsets.map({ customCollections[$0] }) {
+                        viewModel.withDatabase("delete collection") { db in
+                            try db.removeCollection(collection)
+                        }
+                    }
+                }
+                .onMove { fromOffsets, toOffset in
+                    for var collection in fromOffsets.map({ customCollections[$0] }) {
+                        viewModel.withDatabase("update station collection order") { db in
+                            collection.sortOrder = targetOffset(forDestination: toOffset, in: customCollections.map(\.sortOrder), ascending: false)
+                            try db.ctx.update(collection)
+                        }
+                    }
+                }
+            }
+        }
+        .toolbar {
+            ToolbarItemGroup {
+                Button {
+                    addCollectionActive = true
+                    newCollectionNameFocused = true
+                } label: {
+                    Label("Add Collection", systemImage: "plus")
+                }
+            }
+        }
+        .alert("New Collection", isPresented: $addCollectionActive) {
+            TextField("Collection Name", text: $newCollectionName)
+                .focused($newCollectionNameFocused)
+            Button("Cancel", role: .cancel) {
+                addCollectionActive = false
+            }
+            Button("Create") {
+                addCollectionActive = false
+                viewModel.withDatabase("create collection") { db in
+                    try db.createCollection(named: newCollectionName)
+                }
+            }
+            .disabled(!isValidCollectionName(newCollectionName))
+        }
+    }
+}
+
+struct StationCollectionView: View {
+    @Environment(ViewModel.self) var viewModel: ViewModel
+    let collection: StationCollection
+
+    var stationsInCollection: [(StoredStationInfo, StationCollectionInfo)] {
+        viewModel.withDatabase("stationsInCollection") { db in
+            try db.fetchStations(inCollection: collection)
+        } ?? []
+    }
 
     var body: some View {
         List {
-            ForEach(viewModel.favorites) { item in
-                NavigationLink(value: item) {
-                    StationInfoRowView(station: item, showIcon: true)
+            let stationCollections = self.stationsInCollection
+            let stations = stationCollections.map(\.0)
+            let infos = stationCollections.map(\.1)
+            ForEach(stations) { station in
+                NavigationLink(value: station) {
+                    Text(station.name)
                 }
             }
             .onDelete { offsets in
-                viewModel.favorites.remove(atOffsets: offsets)
+                for station in offsets.map({ stations[$0] }) {
+                    viewModel.withDatabase("delete stations from collection") { db in
+                        try db.removeStation(station, fromCollection: self.collection)
+                    }
+                }
             }
             .onMove { fromOffsets, toOffset in
-                viewModel.favorites.move(fromOffsets: fromOffsets, toOffset: toOffset)
+                for var info in fromOffsets.map({ infos[$0] }) {
+                    viewModel.withDatabase("update station collection order") { db in
+                        info.sortOrder = targetOffset(forDestination: toOffset, in: infos.map(\.sortOrder), ascending: false)
+                        try db.ctx.update(info)
+                    }
+                }
             }
+        }
+        .toolbar {
+            ToolbarItem {
+                Button("Shuffle") {
+                    withAnimation {
+                        viewModel.withDatabase("shuffle collection order") { db in
+                            try db.shuffleStations(inCollection: collection)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+extension StationCollection {
+    var localizedName: String {
+        switch self.name {
+        case StationCollection.favoritesCollectionName: return NSLocalizedString("Favorites", comment: "name of standard collection for favorite stations")
+        case StationCollection.recentsCollectionName: return NSLocalizedString("Recently Played", comment: "name of standard collection for recently played stations")
+        default: return self.name
         }
     }
 }
@@ -962,4 +1234,14 @@ struct PlatformHeartView: View {
        Text(verbatim: "💙")
        #endif
     }
+}
+
+/// Given the destination index against the given array of sort orders, return the
+/// value of the sort order that should be applied to the element such that it will appear
+/// in between the elements around the destination.
+private func targetOffset(forDestination toOffset: Int, in sortOrders: [Double], ascending: Bool) -> Double {
+    // TODO: this is ascending=false; handle ascending=true
+    return toOffset == 0 ? (sortOrders[0] + 1.0)
+        : toOffset == sortOrders.count ? (sortOrders[sortOrders.count - 1] / 2.0)
+        : (sortOrders[toOffset - 1] - ((sortOrders[toOffset - 1] - sortOrders[toOffset]) / 2.0))
 }

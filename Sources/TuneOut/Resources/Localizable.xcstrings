@@ -19,6 +19,9 @@
     "90s" : {
       "comment" : "station tag name for the 90s music genre"
     },
+    "Add Collection" : {
+
+    },
     "Adult Contemporary" : {
       "comment" : "station tag name for the adult contemporary music genre"
     },
@@ -62,7 +65,6 @@
     },
     "Cancel" : {
       "comment" : "Button title indicating that the operation should be cancelled",
-      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {
@@ -96,6 +98,9 @@
     "Classical" : {
       "comment" : "station tag name for the classical music genre"
     },
+    "Collection Name" : {
+
+    },
     "Collections" : {
 
     },
@@ -104,6 +109,9 @@
     },
     "Country" : {
       "comment" : "station tag name for the country music genre"
+    },
+    "Create" : {
+
     },
     "Dance" : {
       "comment" : "station tag name for the dance music genre"
@@ -173,7 +181,7 @@
       }
     },
     "Favorites" : {
-
+      "comment" : "name of standard collection for favorite stations"
     },
     "Folk" : {
       "comment" : "station tag name for the folk music genre"
@@ -260,6 +268,9 @@
         }
       }
     },
+    "New Collection" : {
+
+    },
     "News" : {
       "comment" : "station tag name for the alternative music genre\nstation tag name for the news genre"
     },
@@ -328,6 +339,9 @@
     "Random" : {
 
     },
+    "Recently Played" : {
+      "comment" : "name of standard collection for recently played stations"
+    },
     "Rock" : {
       "comment" : "station tag name for the rock music genre"
     },
@@ -371,6 +385,9 @@
     },
     "Show Less" : {
       "comment" : "button title to collapse the list of tags in the browse stations view"
+    },
+    "Shuffle" : {
+
     },
     "Skip to the next station" : {
 
