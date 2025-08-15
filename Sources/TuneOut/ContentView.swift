@@ -4,6 +4,7 @@ import SwiftUI
 import SkipAV
 import SkipSQL
 import TuneOutModel
+import AppFairUI
 
 enum ContentTab: String, Hashable {
     case browse, collections, music, search, settings
@@ -80,19 +81,23 @@ extension View {
 struct MusicPlayerView: View {
     @Environment(ViewModel.self) var viewModel: ViewModel
     @State var volume = 1.0
+    @Environment(\.verticalSizeClass) var verticalSizeClass
 
     var body: some View {
         VStack {
             if let station = viewModel.nowPlaying {
-                Spacer()
+                if verticalSizeClass == .regular {
+                    Spacer()
 
-                if let favicon = station.favicon, let faviconURL = URL(string: favicon) {
-                    AsyncImage(url: faviconURL) { image in
-                        image.resizable()
-                    } placeholder: {
+                    if let favicon = station.favicon, let faviconURL = URL(string: favicon) {
+                        AsyncImage(url: faviconURL) { image in
+                            image.resizable()
+                        } placeholder: {
+                        }
+                        .scaledToFit()
+                        .frame(width: 200, height: 200)
                     }
-                    .scaledToFit()
-                    .frame(width: 200, height: 200)
+
                 }
 
                 Spacer()
@@ -106,38 +111,27 @@ struct MusicPlayerView: View {
                     .lineLimit(3)
                     .padding()
 
-                Text(viewModel.curentTrackTitle?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "")
-                    .multilineTextAlignment(.center)
-                    #if !SKIP
-                    .textSelection(.enabled)
-                    #endif
-                    .font(.title2)
-                    .lineLimit(5)
-                    .padding()
-
-                Spacer()
-
                 HStack {
                     Spacer()
                     Button {
-                        // Back
+                        self.viewModel.previousItem()
                     } label: {
                         Image("skip_previous_skip_previous_fill1_symbol", bundle: .module, label: Text("Skip to the previous station"))
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(width: 50, height: 50)
+                            .frame(width: 40, height: 40)
                     }
 
                     Spacer()
 
-                    if viewModel.playing {
+                    if viewModel.playerState == .playing {
                         Button {
                             viewModel.pause()
                         } label: {
                             Image("pause_pause_fill1_symbol", bundle: .module, label: Text("Pause the current station"))
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: 50, height: 50)
+                                .frame(width: 40, height: 40)
                         }
                     } else {
                         Button {
@@ -146,19 +140,19 @@ struct MusicPlayerView: View {
                             Image("play_arrow_play_arrow_fill1_symbol", bundle: .module, label: Text("Play the current station"))
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
-                                .frame(width: 50, height: 50)
+                                .frame(width: 40, height: 40)
                         }
                     }
 
                     Spacer()
 
                     Button {
-                        // Next
+                        self.viewModel.nextItem()
                     } label: {
                         Image("skip_next_skip_next_fill1_symbol", bundle: .module, label: Text("Skip to the next station"))
                             .resizable()
                             .aspectRatio(contentMode: .fit)
-                            .frame(width: 50, height: 50)
+                            .frame(width: 40, height: 40)
                     }
 
                     Spacer()
@@ -173,6 +167,16 @@ struct MusicPlayerView: View {
                     .onChange(of: volume) {
                         viewModel.player.volume = Float(volume)
                     }
+
+                Text(viewModel.curentTrackTitle?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "")
+                    .multilineTextAlignment(.center)
+                    #if !SKIP
+                    .textSelection(.enabled)
+                    #endif
+                    .font(.title2)
+                    .lineLimit(5)
+                    .frame(minHeight: 100)
+                    .padding()
 
                 Spacer()
             } else {
@@ -649,6 +653,7 @@ struct StationListView: View {
                         Text("Search Stations")
                             .font(.title)
                     }
+                    .foregroundStyle(.gray)
                 } else {
                     Text("No Stations Found")
                         .font(.title)
@@ -1205,7 +1210,7 @@ struct SettingsView: View {
     @Binding var appearance: String
 
     var body: some View {
-        Form {
+        AppFairSettings {
             Picker("Appearance", selection: $appearance) {
                 Text("System").tag("")
                 Text("Light").tag("light")
@@ -1215,24 +1220,7 @@ struct SettingsView: View {
                let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
                 Text("Version \(version) (\(buildNumber))")
             }
-            HStack {
-                PlatformHeartView()
-                Text("Powered by [Skip](https://skip.tools)")
-            }
         }
-    }
-}
-
-/// A view that shows a blue heart on iOS and a green heart on Android.
-struct PlatformHeartView: View {
-    var body: some View {
-       #if SKIP
-       ComposeView { ctx in // Mix in Compose code!
-           androidx.compose.material3.Text("💚", modifier: ctx.modifier)
-       }
-       #else
-       Text(verbatim: "💙")
-       #endif
     }
 }
 
