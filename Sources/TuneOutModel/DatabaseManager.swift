@@ -131,10 +131,10 @@ public extension DatabaseManager {
         }
     }
 
-    func createCollection(named name: String, sortOrder: Double? = nil) throws {
+    @discardableResult func createCollection(named name: String, sortOrder: Double? = nil) throws -> StationCollection {
         let sortOrder = try sortOrder ?? (ctx.selectAll(sql: "SELECT MAX(\(StationCollection.sortOrder.quotedName)) FROM \(StationCollection.table.quotedName)").first?.first?.realValue ?? 0.0)
 
-        try ctx.insert(StationCollection(name: name, sortOrder: sortOrder))
+        return try ctx.insert(StationCollection(name: name, sortOrder: sortOrder))
     }
 
     func fetchAllCollections() throws -> [StationCollection] {
@@ -152,6 +152,30 @@ public extension DatabaseManager {
 
     func fetchCollections(forStation station: StoredStationInfo) throws -> [StationCollection] {
         try ctx.query(StationCollection.self, "t0", join: .inner, on: StationCollectionInfo.stationID, StationCollectionInfo.self, "t1", where: StationCollectionInfo.stationID.alias("t1").equals(SQLValue(station.id))).load().compactMap(\.0)
+    }
+
+    func fetchCollectionCounts() throws -> [(StationCollection, Int)] {
+        // TODO: SkipSQL currently does not support aggregate in joins, but doing something like this would be more efficient:
+        //let collectionInfos: [(StationCollection, CountOf<StationCollectionInfo>)] = try ctx.query(StationCollection.self, "t0", join: .inner, on: StationCollectionInfo.collectionID, CountOf<StationCollectionInfo>.self, "t1").load()
+
+        let collectionInfos = try ctx.query(StationCollection.self, "t0", join: .left, on: StationCollectionInfo.collectionID, StationCollectionInfo.self, "t1", orderBy: [(StationCollection.sortOrder.alias("t0"), .descending)]).load()
+
+        // build up a map of all the keys
+        var collectionInfoCountMap: [StationCollection.ID: Int] = [:]
+        for info in collectionInfos {
+            if let collection = info.0 {
+                collectionInfoCountMap[collection.id, default: 0] += (info.1 == nil ? 0 : 1) // outer join might have nil when there are no members of the collection
+            }
+        }
+
+        // now return the tuple of the collections and counts
+        var collectionInfoCounts: [(StationCollection, Int)] = []
+        for collection in collectionInfos.compactMap(\.0) {
+            if let count = collectionInfoCountMap.removeValue(forKey: collection.id) {
+                collectionInfoCounts.append((collection, count))
+            }
+        }
+        return collectionInfoCounts
     }
 
 //    @inline(__always) func update<T: SQLCodable>(_ ob: T) throws {
@@ -176,7 +200,7 @@ public struct StoredStationInfo : StationInfo, Identifiable, Hashable, SQLCodabl
 
     // url: http://www.example.com/test.pls
     public var url: String
-    static let url = SQLColumn(name: "URL", type: .text)
+    static let url = SQLColumn(name: "URL", type: .text, index: SQLIndex(name: "IDX_STATION_URL"))
 
     // favicon: https://www.example.com/icon.png
     public var favicon: String?
@@ -188,7 +212,7 @@ public struct StoredStationInfo : StationInfo, Identifiable, Hashable, SQLCodabl
 
     // countrycode: US
     public var countrycode: String?
-    static let countrycode = SQLColumn(name: "COUNTRY_CODE", type: .text)
+    static let countrycode = SQLColumn(name: "COUNTRY_CODE", type: .text, index: SQLIndex(name: "IDX_STATION_COUNTY_CODE"))
 
     public static let table = SQLTable(name: "STATION_INFO", columns: [id, stationuuid, name, url, favicon, tags, countrycode])
 
@@ -234,11 +258,16 @@ public struct StoredStationInfo : StationInfo, Identifiable, Hashable, SQLCodabl
     }
 }
 
+
 public struct StationCollection : Identifiable, Hashable, SQLCodable {
     /// The symbolic name for the favorites collection
     public static let favoritesCollectionName = "_favorites"
     /// The symbolic name for the recently playes items collection
     public static let recentsCollectionName = "_recents"
+
+    public var isStandardCollection: Bool {
+        self.name == StationCollection.favoritesCollectionName || self.name == StationCollection.recentsCollectionName
+    }
 
     public typealias ID = Int64
 
