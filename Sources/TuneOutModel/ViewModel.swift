@@ -64,12 +64,46 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
             // access the changes counter so we re-execute this block when it changes
             let changes = self.databaseChanges
             let _ = changes
-            logger.debug("tryAction: \(actionTitle)")
+            logger.debug("tryAction: \(actionTitle) (databaseChanges=\(changes))")
             return try block(db)
         } catch {
             logger.error("tryAction: error \(actionTitle): \(error)")
             return nil
         }
+    }
+
+    public var favoritesCollection: StationCollection {
+        get {
+            try! db.fetchCollections(standard: true).first { collection in
+                collection.name == StationCollection.favoritesCollectionName
+            }!
+        }
+    }
+
+    public var recentsCollection: StationCollection {
+        get {
+            try! db.fetchCollections(standard: true).first { collection in
+                collection.name == StationCollection.recentsCollectionName
+            }!
+        }
+    }
+
+    public var standardCollections: [StationCollection] {
+        withDatabase("standardCollections") { db in
+            try db.fetchCollections(standard: true)
+        } ?? []
+    }
+
+    public var customCollections: [StationCollection] {
+        withDatabase("customCollections") { db in
+            try db.fetchCollections(standard: false)
+        } ?? []
+    }
+
+    public var collectionCounts: [(StationCollection, Int)] {
+        withDatabase("collectionCounts") { db in
+            try db.fetchCollectionCounts()
+        } ?? []
     }
 
     /// Configure the app for playback in the background
@@ -88,31 +122,39 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
         #endif
     }
 
+    func updateRemoteCommands() {
+        #if canImport(MediaPlayer)
+        MPRemoteCommandCenter.shared().playCommand.isEnabled = true
+        MPRemoteCommandCenter.shared().pauseCommand.isEnabled = true
+        // TODO: enable/disable next track based on whether the current collection has multiple entries
+        MPRemoteCommandCenter.shared().nextTrackCommand.isEnabled = true
+        MPRemoteCommandCenter.shared().previousTrackCommand.isEnabled = true
+        #endif
+    }
+
     func setupRemoteCommands() {
         #if canImport(MediaPlayer)
         // self.player.observe(\.currentItem) { player, change in }
 
-        MPRemoteCommandCenter.shared().playCommand.isEnabled = true
+        updateRemoteCommands()
+
         MPRemoteCommandCenter.shared().playCommand.addTarget { [unowned self] event in
             logger.info("playCommand")
             self.play()
             return MPRemoteCommandHandlerStatus.success
         }
 
-        MPRemoteCommandCenter.shared().pauseCommand.isEnabled = true
         MPRemoteCommandCenter.shared().pauseCommand.addTarget { [unowned self] event in
             logger.info("pauseCommand")
             self.pause()
             return MPRemoteCommandHandlerStatus.success
         }
 
-        MPRemoteCommandCenter.shared().nextTrackCommand.isEnabled = true
         MPRemoteCommandCenter.shared().nextTrackCommand.addTarget { [unowned self] event in
             logger.info("nextTrackCommand")
             return self.nextItem() ? .success : .commandFailed
         }
 
-        MPRemoteCommandCenter.shared().previousTrackCommand.isEnabled = true
         MPRemoteCommandCenter.shared().previousTrackCommand.addTarget { [unowned self] event in
             logger.info("previousTrackCommand")
             return self.previousItem() ? .success : .commandFailed
@@ -126,6 +168,7 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
         //}
         #endif
     }
+
     public func clear() {
         favorites.removeAll()
     }
@@ -133,6 +176,11 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
     /// Returns true if the given station is in the favorites list
     public func isFavorite(_ station: APIStationInfo) -> Bool {
         favorites.first { $0.id == station.id } != nil
+    }
+    
+    /// Returns whether a new collection name is valid
+    public func isValidCollectionName(_ name: String) -> Bool {
+        !name.isEmpty && (try? db.fetchCollection(named: name, create: false)) == nil
     }
 
     /// Removes the given station from the favorites list
@@ -156,11 +204,15 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
         favorites.append(station)
 
         do {
-            let storedStation = try db.saveStation(StoredStationInfo(info: station))
-            try db.addStation(storedStation, toCollection: db.favoritesCollection)
+            try addStation(station, to: db.favoritesCollection)
         } catch {
-            print("### error favorite: \(error)")
+            logger.error("error adding station to favorites: \(error)")
         }
+    }
+
+    public func addStation(_ station: APIStationInfo, to collection: StationCollection) throws {
+        let storedStation = try db.saveStation(StoredStationInfo(info: station))
+        try db.addStation(storedStation, toCollection: collection)
     }
 
     public func isPlaying(_ station: APIStationInfo) -> Bool {
@@ -187,6 +239,7 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
         }
 
         self.nowPlaying = station
+        try? self.addStation(station, to: db.recentsCollection) // TODO: trim recents down to size
 
         let item = AVPlayerItem(url: url)
         configurePlayerListener(for: item)
@@ -194,6 +247,7 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
         self.player.play()
         // TODO: we should instead be listening for player updates, so if the player is paused externally (e.g., using MPNowPlayingInfoCenter.default()), this property will be correctly updated
         self.playerState = .playing
+        updateRemoteCommands()
         #if !os(Android)
         self.updateCurrentTrack(title: nil) // clear the current title until it comes up again; disabled because Android's MediaPlayer doesn't re-update this when you pause then play the same station again
         #endif
@@ -203,16 +257,19 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
         logger.info("pause")
         self.player.pause()
         self.playerState = .paused
+        updateRemoteCommands()
     }
 
     @discardableResult public func nextItem() -> Bool {
         logger.info("nextItem")
         //self.player.advanceToNextItem()
+        updateRemoteCommands()
         return false // TODO
     }
 
     @discardableResult public func previousItem() -> Bool {
         logger.info("previousItem")
+        updateRemoteCommands()
         return false // TODO
     }
 

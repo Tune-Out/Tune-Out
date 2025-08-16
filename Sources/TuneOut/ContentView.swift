@@ -175,7 +175,7 @@ struct MusicPlayerView: View {
                     #endif
                     .font(.title2)
                     .lineLimit(5)
-                    .frame(minHeight: 100)
+                    .frame(minHeight: 100, alignment: .top)
                     .padding()
 
                 Spacer()
@@ -760,8 +760,11 @@ struct StationInfoFormView: View {
 }
 
 struct StationInfoView: View {
-    @Environment(ViewModel.self) var viewModel: ViewModel
     let station: APIStationInfo
+    @Environment(ViewModel.self) var viewModel: ViewModel
+    @State var newCollectionName = ""
+    @State var addCollectionActive = false // whether we are showing the dialog for adding a new collection
+    @FocusState var addCollectionNameFocused: Bool
 
     var body: some View {
         Form {
@@ -788,24 +791,28 @@ struct StationInfoView: View {
         #endif
         .toolbar {
             ToolbarItem {
-                Button {
-                    if viewModel.isFavorite(station) {
-                        viewModel.unfavorite(station)
-                    } else {
-                        viewModel.favorite(station)
+                Menu {
+                    Text("Add to Collection")
+                    Button(viewModel.favoritesCollection.localizedName) {
+                        addStation(to: viewModel.favoritesCollection)
+                    }
+                    ForEach(viewModel.customCollections) { collection in
+                        Button(collection.localizedName) {
+                            addStation(to: collection)
+                        }
+                    }
+                    Divider()
+                    Button("New Collection…") {
+                        newCollectionName = ""
+                        addCollectionActive = true
+                        addCollectionNameFocused = true
                     }
                 } label: {
-                    if viewModel.isFavorite(station) {
-                        Image("star_star_fill1_symbol", bundle: .module, label: Text("Unfavorite"))
-                            .resizable()
-                            .foregroundStyle(Color.yellow)
-                            .frame(width: 30, height: 30)
-                    } else {
-                        Image("star_star_fill1_symbol", bundle: .module, label: Text("Favorite"))
-                            .resizable()
-                            .foregroundStyle(Color.gray)
-                            .frame(width: 30, height: 30)
-                    }
+                    Image(systemName: "plus")
+                        .resizable()
+                        .accessibilityLabel(Text("Add to collection"))
+                        .font(.title)
+                        .frame(width: 25, height: 25)
                 }
             }
 
@@ -816,19 +823,46 @@ struct StationInfoView: View {
                     } label: {
                         Image("pause_pause_fill1_symbol", bundle: .module, label: Text("Pause"))
                             .resizable()
+                            .accessibilityLabel(Text("Pause Station"))
                             .font(.title)
                             .frame(width: 25, height: 25)
                     }
                 } else {
                     Button {
                         viewModel.play(station)
+                        //self.selectedTab = .nowPlaying // TODO
                     } label: {
                         Image("play_arrow_play_arrow_fill1_symbol", bundle: .module, label: Text("Play"))
                             .resizable()
+                            .accessibilityLabel(Text("Play Station"))
                             .frame(width: 25, height: 25)
                     }
                 }
             }
+        }
+        .alert("New Collection", isPresented: $addCollectionActive) {
+            TextField("Collection Name", text: $newCollectionName)
+                .focused($addCollectionNameFocused)
+            Button("Cancel", role: .cancel) {
+                addCollectionActive = false
+            }
+            Button("Create") {
+                addCollectionActive = false
+                viewModel.withDatabase("create collection") { db in
+                    let collection = try db.createCollection(named: newCollectionName)
+                    addStation(to: collection)
+                }
+            }
+            .disabled(!viewModel.isValidCollectionName(newCollectionName))
+        }
+    }
+
+    func addStation(to collection: StationCollection) {
+        do {
+            logger.log("add station to collection: \(collection.localizedName)")
+            try viewModel.addStation(station, to: collection)
+        } catch {
+            logger.error("error saving station to collection: \(error)")
         }
     }
 }
@@ -1029,56 +1063,63 @@ extension TagInfo {
 
 struct CollectionsListView: View {
     @Environment(ViewModel.self) var viewModel: ViewModel
-    @State var addCollectionActive = false // whether we are showing the dialog for adding a new collection
     @State var newCollectionName = ""
-    @FocusState var newCollectionNameFocused: Bool
-
-    var standardCollections: [StationCollection] {
-        viewModel.withDatabase("CollectionsListView.collections") { db in
-            try db.fetchCollections(standard: true)
-        } ?? []
-    }
-
-    var customCollections: [StationCollection] {
-        viewModel.withDatabase("CollectionsListView.collections") { db in
-            try db.fetchCollections(standard: false)
-        } ?? []
-    }
-
-    func isValidCollectionName(_ name: String) -> Bool {
-        !newCollectionName.isEmpty
-    }
+    @State var addCollectionActive = false // whether we are showing the dialog for adding a new collection
+    @FocusState var addCollectionNameFocused: Bool
+    @State var deleteCollections: [StationCollection]? = nil
+    @State var deleteCollectionActive = false
 
     var body: some View {
-        let standardCollections = self.standardCollections
-        let customCollections = self.customCollections
+        let collectionCounts = viewModel.collectionCounts
+        let standardCollections = collectionCounts.filter({ $0.0.isStandardCollection })
+        let customCollections = collectionCounts.filter({ !$0.0.isStandardCollection })
+
         List {
             Section {
-                ForEach(standardCollections) { item in
-                    NavigationLink(value: item) {
-                        Text(item.localizedName)
+                ForEach(standardCollections, id: \.0.id) { item in
+                    NavigationLink(value: item.0) {
+                        HStack {
+                            Text(item.0.localizedName)
+                            Spacer()
+                            // SKIP NOWARN
+                            Text(item.1.formatted())
+                        }
                     }
                 }
             }
             Section {
-                ForEach(customCollections) { item in
-                    NavigationLink(value: item) {
-                        Text(item.localizedName)
-                    }
-                }
-                .onDelete { offsets in
-                    for collection in offsets.map({ customCollections[$0] }) {
-                        viewModel.withDatabase("delete collection") { db in
-                            try db.removeCollection(collection)
+                ForEach(customCollections, id: \.0.id) { item in
+                    NavigationLink(value: item.0) {
+                        HStack {
+                            Text(item.0.localizedName)
+                            Spacer()
+                            // SKIP NOWARN
+                            Text(item.1.formatted())
                         }
                     }
                 }
                 .onMove { fromOffsets, toOffset in
-                    for var collection in fromOffsets.map({ customCollections[$0] }) {
+                    for var collection in fromOffsets.map({ customCollections[$0].0 }) {
                         viewModel.withDatabase("update station collection order") { db in
-                            collection.sortOrder = targetOffset(forDestination: toOffset, in: customCollections.map(\.sortOrder), ascending: false)
+                            collection.sortOrder = targetOffset(forDestination: toOffset, in: customCollections.map(\.0.sortOrder), ascending: false)
                             try db.ctx.update(collection)
                         }
+                    }
+                }
+                .onDelete { offsets in
+                    self.deleteCollections = offsets.map({ customCollections[$0].0 })
+                    self.deleteCollectionActive = true
+                }
+                .confirmationDialog("Delete Collection", isPresented: $deleteCollectionActive) {
+                    Button("Delete Collection", role: .destructive) {
+                        for collection in deleteCollections ?? [] {
+                            withAnimation {
+                                viewModel.withDatabase("delete collection") { db in
+                                    try db.removeCollection(collection)
+                                }
+                            }
+                        }
+                        self.deleteCollections = nil
                     }
                 }
             }
@@ -1086,8 +1127,9 @@ struct CollectionsListView: View {
         .toolbar {
             ToolbarItemGroup {
                 Button {
+                    newCollectionName = ""
                     addCollectionActive = true
-                    newCollectionNameFocused = true
+                    addCollectionNameFocused = true
                 } label: {
                     Label("Add Collection", systemImage: "plus")
                 }
@@ -1095,7 +1137,7 @@ struct CollectionsListView: View {
         }
         .alert("New Collection", isPresented: $addCollectionActive) {
             TextField("Collection Name", text: $newCollectionName)
-                .focused($newCollectionNameFocused)
+                .focused($addCollectionNameFocused)
             Button("Cancel", role: .cancel) {
                 addCollectionActive = false
             }
@@ -1105,14 +1147,17 @@ struct CollectionsListView: View {
                     try db.createCollection(named: newCollectionName)
                 }
             }
-            .disabled(!isValidCollectionName(newCollectionName))
+            .disabled(!viewModel.isValidCollectionName(newCollectionName))
         }
     }
 }
 
 struct StationCollectionView: View {
+    @State var collection: StationCollection
+    @State var renameCollectionName = ""
+    @State var renameCollectionActive = false // whether we are showing the dialog for adding a new collection
+    @FocusState var renameCollectionNameFocused: Bool
     @Environment(ViewModel.self) var viewModel: ViewModel
-    let collection: StationCollection
 
     var stationsInCollection: [(StoredStationInfo, StationCollectionInfo)] {
         viewModel.withDatabase("stationsInCollection") { db in
@@ -1146,16 +1191,45 @@ struct StationCollectionView: View {
                 }
             }
         }
+        .navigationTitle(collection.localizedName)
         .toolbar {
             ToolbarItem {
-                Button("Shuffle") {
-                    withAnimation {
-                        viewModel.withDatabase("shuffle collection order") { db in
-                            try db.shuffleStations(inCollection: collection)
+                Menu {
+                    Button("Rename Collection") {
+                        // need to manually disable due to: https://github.com/skiptools/skip-ui/issues/246
+                        if collection.isStandardCollection { return }
+                        renameCollectionName = collection.name
+                        renameCollectionNameFocused = true
+                        renameCollectionActive = true
+                    }
+                    .disabled(collection.isStandardCollection)
+                    Button("Shuffle") {
+                        withAnimation {
+                            viewModel.withDatabase("shuffle collection order") { db in
+                                try db.shuffleStations(inCollection: collection)
+                            }
                         }
                     }
+                } label: {
+                    Image(systemName: "ellipsis")
+                        .accessibilityLabel(Text("Collection Actions Menu"))
                 }
             }
+        }
+        .alert("Rename Collection", isPresented: $renameCollectionActive) {
+            TextField("Collection Name", text: $renameCollectionName)
+                .focused($renameCollectionNameFocused)
+            Button("Cancel", role: .cancel) {
+                renameCollectionActive = false
+            }
+            Button("Rename") {
+                renameCollectionActive = false
+                viewModel.withDatabase("rename collection") { db in
+                    collection.name = renameCollectionName
+                    try db.ctx.update(collection)
+                }
+            }
+            .disabled(!viewModel.isValidCollectionName(renameCollectionName))
         }
     }
 }
