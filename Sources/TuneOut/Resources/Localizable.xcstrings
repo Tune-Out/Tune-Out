@@ -306,6 +306,7 @@
     },
     "Powered by [Skip](https://skip.tools)" : {
       "comment" : "Link markdown text for the Powered by… label",
+      "extractionState" : "stale",
       "localizations" : {
         "es" : {
           "stringUnit" : {

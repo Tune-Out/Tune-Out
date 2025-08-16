@@ -75,6 +75,7 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
     /// Configure the app for playback in the background
     func activateAudioSession() {
         #if canImport(MediaPlayer)
+        #if !os(macOS) // AVAudioSession not available on macOS
         do {
             // https://developer.apple.com/documentation/AVFoundation/configuring-your-app-for-media-playback#Configure-the-audio-session
             let session = AVAudioSession.sharedInstance()
@@ -83,6 +84,7 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
         } catch {
             logger.error("error configuring AVAudioSession: \(error)")
         }
+        #endif
         #endif
     }
 
