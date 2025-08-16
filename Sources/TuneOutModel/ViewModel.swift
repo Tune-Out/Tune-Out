@@ -16,8 +16,16 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
 
 /// The Observable ViewModel used by the application.
 @Observable @MainActor public final class ViewModel {
-    public let player: AVQueuePlayer = AVQueuePlayer()
-    public var playing = false
+    public let player = AVPlayer()
+
+    public var playerState: PlayerState = .stopped
+
+    public enum PlayerState {
+        case stopped
+        case playing
+        case paused
+    }
+
     public var curentTrackTitle: String? = nil
     private static var audioSessionActivated = false
 
@@ -47,6 +55,8 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
             logger.log("onUpdate: \(action.description) rowid=\(rowid) tblname=\(tblname)")
             self.databaseChanges += 1
         })
+
+        setupRemoteCommands()
     }
 
     @discardableResult public func withDatabase<T>(_ actionTitle: String, block: (DatabaseManager) throws -> T) -> T? {
@@ -64,18 +74,58 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
 
     /// Configure the app for playback in the background
     func activateAudioSession() {
-        #if os(iOS)
+        #if canImport(MediaPlayer)
+        #if !os(macOS) // AVAudioSession not available on macOS
         do {
             // https://developer.apple.com/documentation/AVFoundation/configuring-your-app-for-media-playback#Configure-the-audio-session
             let session = AVAudioSession.sharedInstance()
-            try session.setCategory(.playback)
+            try session.setCategory(.playback, mode: .default)
             try session.setActive(true)
         } catch {
             logger.error("error configuring AVAudioSession: \(error)")
         }
         #endif
+        #endif
     }
 
+    func setupRemoteCommands() {
+        #if canImport(MediaPlayer)
+        // self.player.observe(\.currentItem) { player, change in }
+
+        MPRemoteCommandCenter.shared().playCommand.isEnabled = true
+        MPRemoteCommandCenter.shared().playCommand.addTarget { [unowned self] event in
+            logger.info("playCommand")
+            self.play()
+            return MPRemoteCommandHandlerStatus.success
+        }
+
+        MPRemoteCommandCenter.shared().pauseCommand.isEnabled = true
+        MPRemoteCommandCenter.shared().pauseCommand.addTarget { [unowned self] event in
+            logger.info("pauseCommand")
+            self.pause()
+            return MPRemoteCommandHandlerStatus.success
+        }
+
+        MPRemoteCommandCenter.shared().nextTrackCommand.isEnabled = true
+        MPRemoteCommandCenter.shared().nextTrackCommand.addTarget { [unowned self] event in
+            logger.info("nextTrackCommand")
+            return self.nextItem() ? .success : .commandFailed
+        }
+
+        MPRemoteCommandCenter.shared().previousTrackCommand.isEnabled = true
+        MPRemoteCommandCenter.shared().previousTrackCommand.addTarget { [unowned self] event in
+            logger.info("previousTrackCommand")
+            return self.previousItem() ? .success : .commandFailed
+        }
+
+        // TODO: handle starring the current track as a favorite
+        //MPRemoteCommandCenter.shared().likeCommand.isEnabled = true
+        //MPRemoteCommandCenter.shared().likeCommand.addTarget { [unowned self] event in
+        //    logger.info("likeCommand")
+        //    return MPRemoteCommandHandlerStatus.commandFailed // TODO
+        //}
+        #endif
+    }
     public func clear() {
         favorites.removeAll()
     }
@@ -114,10 +164,17 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
     }
 
     public func isPlaying(_ station: APIStationInfo) -> Bool {
-        self.playing && nowPlaying?.id == station.id
+        self.playerState == .playing && nowPlaying?.id == station.id
     }
 
-    public func play(_ station: APIStationInfo) {
+    public func play(_ station: APIStationInfo? = nil) {
+        guard let station = station ?? self.nowPlaying else {
+            logger.warning("no current station")
+            return
+        }
+
+        logger.info("play: \(station.url)")
+
         guard let url = URL(string: station.url) else {
             logger.error("cannot parse station url: \(station.url)")
             return
@@ -136,13 +193,27 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
         self.player.replaceCurrentItem(with: item)
         self.player.play()
         // TODO: we should instead be listening for player updates, so if the player is paused externally (e.g., using MPNowPlayingInfoCenter.default()), this property will be correctly updated
-        self.playing = true
-        //self.updateCurrentTrack(title: nil) // clear the current title until it comes up again; disabled because Android's MediaPlayer doesn't re-update this when you pause then play the same station again
+        self.playerState = .playing
+        #if !os(Android)
+        self.updateCurrentTrack(title: nil) // clear the current title until it comes up again; disabled because Android's MediaPlayer doesn't re-update this when you pause then play the same station again
+        #endif
     }
 
     public func pause() {
+        logger.info("pause")
         self.player.pause()
-        self.playing = false
+        self.playerState = .paused
+    }
+
+    @discardableResult public func nextItem() -> Bool {
+        logger.info("nextItem")
+        //self.player.advanceToNextItem()
+        return false // TODO
+    }
+
+    @discardableResult public func previousItem() -> Bool {
+        logger.info("previousItem")
+        return false // TODO
     }
 
     func updateCurrentTrack(title: String?) {
@@ -151,10 +222,18 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
         #if canImport(MediaPlayer)
         let center = MPNowPlayingInfoCenter.default()
         var nowPlayingInfo = center.nowPlayingInfo ?? [:]
-        nowPlayingInfo[MPMediaItemPropertyTitle] = title
+        nowPlayingInfo[MPMediaItemPropertyTitle] = title ?? self.nowPlaying?.name
         if let currentStationName = self.nowPlaying?.name {
             nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = currentStationName
         }
+        //nowPlayingInfo[MPNowPlayingInfoPropertyAssetURL] = metadata.assetURL
+        //nowPlayingInfo[MPNowPlayingInfoPropertyMediaType] = metadata.mediaType.rawValue
+        //nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = metadata.isLiveStream
+        //nowPlayingInfo[MPMediaItemPropertyTitle] = metadata.title
+        //nowPlayingInfo[MPMediaItemPropertyArtist] = metadata.artist
+        //nowPlayingInfo[MPMediaItemPropertyArtwork] = metadata.artwork
+        //nowPlayingInfo[MPMediaItemPropertyAlbumArtist] = metadata.albumArtist
+        //nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = metadata.albumTitle
         center.nowPlayingInfo = nowPlayingInfo
         #endif
     }
