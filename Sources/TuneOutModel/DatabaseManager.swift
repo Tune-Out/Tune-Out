@@ -21,7 +21,7 @@ public final class DatabaseManager {
     func initializeSchema() throws {
         var version = try currentSchemaVersion()
 
-        version = try migrateSchema(v: 1, current: version, ddl: StoredStationInfo.table.createTableSQL(withIndexes: true))
+        version = try migrateSchema(v: 1, current: version, ddl: StoredStationInfo.table.createTableSQL(withIndexes: true, columns: [StoredStationInfo.id, StoredStationInfo.stationuuid, StoredStationInfo.name, StoredStationInfo.url, StoredStationInfo.favicon, StoredStationInfo.tags, StoredStationInfo.countrycode]))
 
         version = try migrateSchema(v: 3, current: version, ddl: StationCollection.table.createTableSQL(withIndexes: true, columns: [StationCollection.id, StationCollection.name, StationCollection.icon])) // manual column specification from before we added the "SORT_ORDER" column
 
@@ -29,6 +29,8 @@ public final class DatabaseManager {
 
         // new COLLECTION_INFO.SORT_ORDER column and pre-populate any pre-existing NULLs with default values
         version = try migrateSchema(v: 7, current: version, ddl: StationCollection.table.addColumnSQL(column: StationCollection.sortOrder, withIndexes: true) + [SQLExpression("UPDATE \(StationCollection.table.quotedName) SET \(StationCollection.sortOrder.quotedName) = ROWID WHERE \(StationCollection.sortOrder.quotedName) IS NULL")])
+
+        version = try migrateSchema(v: 10, current: version, ddl: StoredStationInfo.table.addColumnSQL(column: StoredStationInfo.homepage, withIndexes: true))
     }
 
     private func currentSchemaVersion() throws -> Int {
@@ -184,7 +186,7 @@ public extension DatabaseManager {
 }
 
 /// A station stored locally
-public struct StoredStationInfo : StationInfo, Identifiable, Hashable, SQLCodable {
+public struct StoredStationInfo : StationInfo, Identifiable, Hashable, Codable, SQLCodable {
     public typealias ID = Int64
 
     public let id: ID
@@ -202,6 +204,9 @@ public struct StoredStationInfo : StationInfo, Identifiable, Hashable, SQLCodabl
     public var url: String
     static let url = SQLColumn(name: "URL", type: .text, index: SQLIndex(name: "IDX_STATION_URL"))
 
+    public var homepage: String?
+    static let homepage = SQLColumn(name: "HOMEPAGE", type: .text, index: SQLIndex(name: "IDX_STATION_HOMEPAGE"))
+
     // favicon: https://www.example.com/icon.png
     public var favicon: String?
     static let favicon = SQLColumn(name: "ICON", type: .text)
@@ -214,27 +219,17 @@ public struct StoredStationInfo : StationInfo, Identifiable, Hashable, SQLCodabl
     public var countrycode: String?
     static let countrycode = SQLColumn(name: "COUNTRY_CODE", type: .text, index: SQLIndex(name: "IDX_STATION_COUNTY_CODE"))
 
-    public static let table = SQLTable(name: "STATION_INFO", columns: [id, stationuuid, name, url, favicon, tags, countrycode])
+    public static let table = SQLTable(name: "STATION_INFO", columns: [id, stationuuid, name, url, homepage, favicon, tags, countrycode])
 
-    public init(id: ID = 0, stationuuid: UUID? = nil, name: String, url: String, favicon: String? = nil, tags: String? = nil, countrycode: String? = nil) {
+    public init(id: ID = 0, stationuuid: UUID? = nil, name: String, url: String, homepage: String? = nil, favicon: String? = nil, tags: String? = nil, countrycode: String? = nil) {
         self.id = id
         self.stationuuid = stationuuid
         self.name = name
         self.url = url
+        self.homepage = homepage
         self.favicon = favicon
         self.tags = tags
         self.countrycode = countrycode
-    }
-
-    /// Create this stored station from the StationInfo API type
-    public init(info: StationInfo) {
-        self.id = 0 // new instance
-        self.stationuuid = info.stationuuid
-        self.name = info.name
-        self.url = info.url
-        self.favicon = info.favicon
-        self.tags = info.tags
-        self.countrycode = info.countrycode
     }
 
     public init(row: SQLRow, context: SQLContext) throws {
@@ -242,6 +237,7 @@ public struct StoredStationInfo : StationInfo, Identifiable, Hashable, SQLCodabl
         self.stationuuid = Self.stationuuid.textValue(in: row).flatMap({ UUID(uuidString: $0) })
         self.name = try Self.name.textValueRequired(in: row)
         self.url = try Self.url.textValueRequired(in: row)
+        self.homepage = Self.homepage.textValue(in: row)
         self.favicon = Self.favicon.textValue(in: row)
         self.tags = Self.tags.textValue(in: row)
         self.countrycode = Self.countrycode.textValue(in: row)
@@ -252,14 +248,33 @@ public struct StoredStationInfo : StationInfo, Identifiable, Hashable, SQLCodabl
         row[Self.stationuuid] = SQLValue(self.stationuuid?.uuidString)
         row[Self.name] = SQLValue(self.name)
         row[Self.url] = SQLValue(self.url)
+        row[Self.homepage] = SQLValue(self.homepage)
         row[Self.favicon] = SQLValue(self.favicon)
         row[Self.tags] = SQLValue(self.tags)
         row[Self.countrycode] = SQLValue(self.countrycode)
     }
+
+    /// Create this stored station from the StationInfo API type
+    public static func create(from info: StationInfo) -> Self {
+        if let storedInfo = info as? StoredStationInfo {
+            return storedInfo
+        }
+
+        var storedInfo = StoredStationInfo(name: info.name, url: info.url)
+        storedInfo.stationuuid = info.stationuuid
+        storedInfo.name = info.name
+        storedInfo.url = info.url
+        storedInfo.homepage = info.homepage
+        storedInfo.favicon = info.favicon
+        storedInfo.tags = info.tags
+        storedInfo.countrycode = info.countrycode
+
+        return storedInfo
+    }
 }
 
 
-public struct StationCollection : Identifiable, Hashable, SQLCodable {
+public struct StationCollection : Identifiable, Hashable, Codable, SQLCodable {
     /// The symbolic name for the favorites collection
     public static let favoritesCollectionName = "_favorites"
     /// The symbolic name for the recently playes items collection

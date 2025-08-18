@@ -26,7 +26,20 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
         case paused
     }
 
+    public var browseNavigationPath: [NavPath] = [] {
+        didSet {
+            logger.log("browseNavigationPath: \(self.browseNavigationPath)")
+        }
+    }
+
+    public var collectionsNavigationPath: [NavPath] = [] {
+        didSet {
+            logger.log("collectionsNavigationPath: \(self.collectionsNavigationPath)")
+        }
+    }
+
     public var curentTrackTitle: String? = nil
+    public var currentTrackArtwork: URL? = nil
     private static var audioSessionActivated = false
 
     internal let db = try! DatabaseManager(url: URL.applicationSupportDirectory.appendingPathComponent("tuneout.sqlite"))
@@ -37,14 +50,10 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
     // TODO: enable setting hidebroken from user preference
     public let queryParams = QueryParams(order: nil, reverse: nil, hidebroken: true, offset: nil, limit: nil)
 
-    //@available(*, deprecated, message: "TODO: replace with DatabaseManager collection")
-    public var favorites: [APIStationInfo] = loadFavorites() {
-        didSet { saveFavorites() }
-    }
-
-    //@available(*, deprecated, message: "TODO: replace with DatabaseManager collection")
-    public var nowPlaying: APIStationInfo? = loadNowPlaying().first {
-        didSet { saveNowPlaying() }
+    public var nowPlaying: StoredStationInfo? {
+        withDatabase("nowPlaying") { db in
+            try db.fetchStations(inCollection: self.recentsCollection).first?.0
+        } ?? nil
     }
 
     public init() {
@@ -169,57 +178,21 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
         #endif
     }
 
-    public func clear() {
-        favorites.removeAll()
-    }
-
-    /// Returns true if the given station is in the favorites list
-    public func isFavorite(_ station: APIStationInfo) -> Bool {
-        favorites.first { $0.id == station.id } != nil
-    }
-    
     /// Returns whether a new collection name is valid
     public func isValidCollectionName(_ name: String) -> Bool {
         !name.isEmpty && (try? db.fetchCollection(named: name, create: false)) == nil
     }
 
-    /// Removes the given station from the favorites list
-    public func unfavorite(_ station: APIStationInfo) {
-        favorites = favorites.filter { $0.id != station.id }
-        do {
-            if let stationID = station.stationuuid,
-               let existingStation = try db.fetchStation(stationuuid: stationID) {
-                try db.removeStation(existingStation, fromCollection: db.favoritesCollection)
-            }
-        } catch {
-            print("### error unfavorite: \(error)")
-        }
-    }
-
-    /// Adds the given station to the favorites list
-    public func favorite(_ station: APIStationInfo) {
-        if favorites.contains(station) {
-            unfavorite(station)
-        }
-        favorites.append(station)
-
-        do {
-            try addStation(station, to: db.favoritesCollection)
-        } catch {
-            logger.error("error adding station to favorites: \(error)")
-        }
-    }
-
-    public func addStation(_ station: APIStationInfo, to collection: StationCollection) throws {
-        let storedStation = try db.saveStation(StoredStationInfo(info: station))
+    public func addStation(_ station: StationInfo, to collection: StationCollection) throws {
+        let storedStation = try db.saveStation(StoredStationInfo.create(from: station))
         try db.addStation(storedStation, toCollection: collection)
     }
 
-    public func isPlaying(_ station: APIStationInfo) -> Bool {
-        self.playerState == .playing && nowPlaying?.id == station.id
+    public func isPlaying(_ station: StationInfo) -> Bool {
+        self.playerState == .playing && nowPlaying?.stationuuid == station.stationuuid
     }
 
-    public func play(_ station: APIStationInfo? = nil) {
+    public func play(_ station: StationInfo? = nil) {
         guard let station = station ?? self.nowPlaying else {
             logger.warning("no current station")
             return
@@ -238,7 +211,7 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
             activateAudioSession()
         }
 
-        self.nowPlaying = station
+        // add the station to the recents collection, which sets it as the `nowPlaying` station
         try? self.addStation(station, to: db.recentsCollection) // TODO: trim recents down to size
 
         let item = AVPlayerItem(url: url)
@@ -275,11 +248,20 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
 
     func updateCurrentTrack(title: String?) {
         self.curentTrackTitle = title
+        // clear any artwork until we get an update
+        self.currentTrackArtwork = nil
 
         #if canImport(MediaPlayer)
         let center = MPNowPlayingInfoCenter.default()
         var nowPlayingInfo = center.nowPlayingInfo ?? [:]
         nowPlayingInfo[MPMediaItemPropertyTitle] = title ?? self.nowPlaying?.name
+        nowPlayingInfo[MPNowPlayingInfoPropertyIsLiveStream] = true as AnyObject
+        nowPlayingInfo[MPNowPlayingInfoPropertyMediaType] = MPNowPlayingInfoMediaType.audio.rawValue as NSNumber
+
+        // TODO: Update queue list with the current collection list
+        //nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackQueueCount] = queue.count as AnyObject
+        //nowPlayingInfo[MPNowPlayingInfoPropertyPlaybackQueueIndex] = 1 as AnyObject
+
         if let currentStationName = self.nowPlaying?.name {
             nowPlayingInfo[MPMediaItemPropertyAlbumTitle] = currentStationName
         }
@@ -302,6 +284,9 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
         if self.playerListener == nil {
             let listener = PlayerListener { metadata in
                 self.updateCurrentTrack(title: metadata.title?.description)
+                if let artworkUri = metadata.artworkUri {
+                    self.currentTrackArtwork = URL(string: artworkUri.toString())
+                }
             }
             self.playerListener = listener
             player.mediaPlayer.addListener(listener)
@@ -313,11 +298,40 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
                 for item in group.items {
                     if let key = item.key {
                         logger.log("item key: \(key.description) common: \(item.commonKey?.rawValue ?? "none")")
+                        // FIXME: some streams encode a bunch of information in the title, like:
+                        // "<AVMutableMetadataItem: 0x600000302560, identifier=icy/StreamTitle, keySpace=icy, key class = __NSCFConstantString, key=StreamTitle, commonKey=title, extendedLanguageTag=(null), dataType=(null), time={1341376/24000 = 55.891}, duration={1/24000 = 0.000}, startDate=(null), extras={\n}, value class=__NSCFString, value=Georgia Brown - text=\"As Long As He Needs Me\" song_spot=\"M\" spotInstanceId=\"-1\" length=\"00:04:07\" MediaBaseId=\"\" TAID=\"0\" TPID=\"648410\" cartcutId=\"422206\" amgArtworkURL=\"https://i.iheart.com/v3/catalog/track/648410?ops=fit(400,400),format(%22png%22)\" spEventID=\"59365933-b66b-f011-836a-0242c86e7629\" >"
+
                         if item.commonKey?.rawValue == "title" { // key names are like StreamTitle and StreamUrl
                             Task { @MainActor  in
                                 let title = try await item.getStringValue()
                                 logger.log("track title: \(title ?? "")")
                                 self.updateCurrentTrack(title: title)
+                            }
+                        }
+
+                        // artwork can come in like:
+                        // "<AVMutableMetadataItem: 0x60000022cfa0, identifier=icy/StreamUrl, keySpace=icy, key class = __NSCFConstantString, key=StreamUrl, commonKey=(null), extendedLanguageTag=(null), dataType=(null), time={15296/44100 = 0.347}, duration={1/44100 = 0.000}, startDate=(null), extras={\n}, value class=__NSCFString, value=http://img.radioparadise.com/covers/l/18541_48f6fcd3-566e-4124-aaa8-f7e7db864f62.jpg>"
+                        // "<AVMutableMetadataItem: 0x60000022eca0, identifier=icy/StreamUrl, keySpace=icy, key class = __NSCFConstantString, key=StreamUrl, commonKey=(null), extendedLanguageTag=(null), dataType=(null), time={123264/44100 = 2.795}, duration={1/44100 = 0.000}, startDate=(null), extras={\n}, value class=__NSCFString, value=https://somafm.com/logos/512/groovesalad512.png>"
+                        //
+                        // but other "StreamUrl" metadata isn't necessarily a URL to artwork, like:
+                        //
+                        // "<AVMutableMetadataItem: 0x60000022ccc0, identifier=icy/StreamUrl, keySpace=icy, key class = __NSCFConstantString, key=StreamUrl, commonKey=(null), extendedLanguageTag=(null), dataType=(null), time={2304/44100 = 0.052}, duration={1/44100 = 0.000}, startDate=(null), extras={\n}, value class=__NSCFString, value=MM-CLA-112563.mp3>"
+                        // "<AVMutableMetadataItem: 0x600000331fc0, identifier=icy/StreamUrl, keySpace=icy, key class = __NSCFConstantString, key=StreamUrl, commonKey=(null), extendedLanguageTag=(null), dataType=(null), time={43776/44100 = 0.993}, duration={1/44100 = 0.000}, startDate=(null), extras={\n}, value class=__NSCFString, value=http://www.miamibeachradio.com>"
+                        //
+                        // also artwork can come in like:
+                        // "<AVMutableMetadataItem: 0x600000322a60, identifier=id3/TXXX, keySpace=org.id3, key class = NSTaggedPointerString, key=TXXX, commonKey=(null), extendedLanguageTag=(null), dataType=(null), time={32316480/360000 = 89.768}, duration={1/360000 = 0.000}, startDate=(null), extras={\n    info = URL;\n}, value class=__NSCFString, value=song_spot=\"M\" spotInstanceId=\"-1\" length=\"00:01:44\" MediaBaseId=\"1181648\" TAID=\"0\" TPID=\"82989618\" cartcutId=\"735438\" amgArtworkURL=\"http://image.iheart.com/SBMG2/Thumb_Content/Full_PC/SBMG/Dec09/121509/batch4/1919137/000/000/000/000/026/468/71/00000000000002646871-480x480_72dpi_RGB_100Q.jpg\" spEventID=\"a29b708c-2478-f011-836a-0242c86e7629\" >"
+                        if item.key?.description == "StreamUrl" {
+                            Task { @MainActor  in
+                                let streamUrl = try await item.getStringValue()
+                                logger.log("track streamUrl: \(streamUrl ?? "")")
+                                // e.g.: http://img.radioparadise.com/covers/l/18951_f4537ecb-b795-45d4-ac6e-fb6dba939c12.jpg
+                                if let streamUrl,
+                                   (streamUrl.hasPrefix("http://") || streamUrl.hasPrefix("https://")),
+                                   (streamUrl.hasSuffix("png") || streamUrl.hasSuffix("gif") || streamUrl.hasSuffix("jpg") || streamUrl.hasSuffix("jpeg")),
+                                   let artworkURL = URL(string: streamUrl) {
+                                    // looks like artwork URL: update the currently playing URL
+                                    self.currentTrackArtwork = artworkURL
+                                }
                             }
                         }
                     }
@@ -339,6 +353,44 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
     #endif
 }
 
+/// The navigation path for various tabs in the app
+public enum NavPath : Hashable {
+    case stationQuery(StationQuery)
+    case apiStationInfo(APIStationInfo)
+    case storedStationInfo(StoredStationInfo)
+    case stationCollection(StationCollection)
+    case browseStationMode(BrowseStationMode)
+}
+
+public enum BrowseStationMode: String, Hashable, Codable {
+    //case languages // languages are not normalized and are full of garbage
+    case countries
+    case tags
+}
+
+public struct StationQuery: Hashable, Codable {
+    public var title: String
+    public var params: StationQueryParams
+    public var sortOption: StationSortOption
+
+    public init(title: String, params: StationQueryParams = StationQueryParams(), sortOption: StationSortOption = .popularity) {
+        self.title = title
+        self.params = params
+        self.sortOption = sortOption
+    }
+}
+
+public enum StationSortOption: String, Identifiable, Hashable, CaseIterable, Codable {
+    case name
+    case popularity
+    case trend
+    case random
+
+    public var id: StationSortOption {
+        self
+    }
+}
+
 public protocol StationInfo {
     // name: Best Radio
     var name: String { get }
@@ -347,6 +399,9 @@ public protocol StationInfo {
 
     // url: http://www.example.com/test.pls
     var url: String { get }
+
+    // url: http://www.example.com/test.pls
+    var homepage: String? { get }
 
     // favicon: https://www.example.com/icon.png
     var favicon: String? { get }
@@ -378,7 +433,7 @@ final class PlayerListener: androidx.media3.common.Player.Listener {
 
     // Listen for metadata updates (important for streams)
     override func onMediaMetadataChanged(mediaMetadata: androidx.media3.common.MediaMetadata) {
-        logger.log("metadata updated: title: \(mediaMetadata.title) artist: \(mediaMetadata.artist) zlbum: \(mediaMetadata.albumTitle) zrtwork URI: \(mediaMetadata.artworkUri)")
+        logger.log("metadata updated: title: \(mediaMetadata.title) artist: \(mediaMetadata.artist) albumTitle: \(mediaMetadata.artworkUri) zrtwork URI: \(mediaMetadata.artworkUri)")
         metadataCallback(mediaMetadata)
     }
 
@@ -406,6 +461,9 @@ final class OutputPushDelegate: NSObject, AVPlayerItemMetadataOutputPushDelegate
 
     func metadataOutput(_ output: AVPlayerItemMetadataOutput, didOutputTimedMetadataGroups groups: [AVTimedMetadataGroup], from track: AVPlayerItemTrack?) {
         logger.debug("metadataOutput: \(output) track: \(track?.description ?? "none")")
+        for group in groups {
+            logger.debug("metadataOutput: group: \(group)")
+        }
         self.callback(groups)
     }
 }
@@ -418,59 +476,7 @@ extension AVMetadataItem {
 }
 #endif
 
-/// Utilities for defaulting and persising the items in the list
 extension ViewModel {
-
-    private static let favoritesPath = URL.applicationSupportDirectory.appendingPathComponent("favorites.json")
-    private static let nowPlayingPath = URL.applicationSupportDirectory.appendingPathComponent("playing.json")
-
-    fileprivate static func loadNowPlaying() -> [APIStationInfo] {
-        loadItems(savePath: nowPlayingPath)
-    }
-
-    fileprivate func saveNowPlaying() {
-        if let nowPlaying {
-            saveItems(savePath: Self.nowPlayingPath, items: [nowPlaying])
-        }
-    }
-
-    fileprivate static func loadFavorites() -> [APIStationInfo] {
-        loadItems(savePath: favoritesPath)
-    }
-
-    fileprivate func saveFavorites() {
-        saveItems(savePath: Self.favoritesPath, items: favorites)
-    }
-
-    private static func loadItems(savePath: URL) -> [APIStationInfo] {
-        do {
-            let start = Date.now
-            let data = try Data(contentsOf: savePath)
-            defer {
-                let end = Date.now
-                logger.info("loaded \(data.count) bytes from \(savePath.path) in \(end.timeIntervalSince(start)) seconds")
-            }
-            return unique(try JSONDecoder().decode([APIStationInfo].self, from: data))
-        } catch {
-            // perhaps the first launch, or the data could not be read
-            logger.warning("failed to load data from \(savePath), using defaultItems: \(error)")
-            return []
-        }
-    }
-
-    private func saveItems(savePath: URL, items: [APIStationInfo]) {
-        do {
-            let start = Date.now
-            let data = try JSONEncoder().encode(items)
-            try FileManager.default.createDirectory(at: URL.applicationSupportDirectory, withIntermediateDirectories: true)
-            try data.write(to: savePath)
-            let end = Date.now
-            logger.info("saved \(data.count) bytes to \(savePath.path) in \(end.timeIntervalSince(start)) seconds")
-        } catch {
-            logger.error("error saving data: \(error)")
-        }
-    }
-
     /// Ensure that no duplicate IDs exist in the list of stations, which will crash on Android with:
     /// `07-11 17:48:47.636 11894 11894 E AndroidRuntime: java.lang.IllegalArgumentException: Key "9617A958-0601-11E8-AE97-52543BE04C81" was already used. If you are using LazyColumn/Row please make sure you provide a unique key for each item.`
     public static func unique(_ stations: [APIStationInfo]) -> [APIStationInfo] {

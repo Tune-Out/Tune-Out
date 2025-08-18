@@ -297,7 +297,7 @@ public struct QueryParams: Sendable {
     }
 }
 
-public struct StationQueryParams: Hashable, Sendable {
+public struct StationQueryParams: Hashable, Sendable, Codable {
     // name        string    OPTIONAL, name of the station
     public var name: String?
     // nameExact    false    true, false    OPTIONAL. True: only exact matches, otherwise all matches.
