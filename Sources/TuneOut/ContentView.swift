@@ -17,11 +17,14 @@ struct ContentView: View {
 
     var body: some View {
         TabView(selection: $tab) {
-            BrowseStationsView()
+            NavigationStack(path: $viewModel.browseNavigationPath) {
+                BrowseStationsView()
+                    .stationNavigationDestinations()
+            }
                 .tabItem { Label("Browse", systemImage: "list.bullet") }
                 .tag(ContentTab.browse)
 
-            NavigationStack {
+            NavigationStack(path: $viewModel.collectionsNavigationPath) {
                 CollectionsListView()
                     .navigationTitle("Collections")
                     .stationNavigationDestinations()
@@ -65,15 +68,19 @@ struct ContentView: View {
 extension View {
     /// Standard navigation destinations for station browsing
     public func stationNavigationDestinations() -> some View {
-        self
-        .navigationDestination(for: StationQuery.self) {
-            StationListView(query: $0)
-        }
-        .navigationDestination(for: APIStationInfo.self) {
-            StationInfoView(station: $0)
-        }
-        .navigationDestination(for: StationCollection.self) {
-            StationCollectionView(collection: $0)
+        navigationDestination(for: NavPath.self) {
+            switch $0 {
+            case .stationQuery(let query): StationListView(query: query)
+            case .apiStationInfo(let station): StationInfoView(station: station)
+            case .storedStationInfo(let station): StationInfoView(station: station)
+            case .stationCollection(let collection): StationCollectionView(collection: collection)
+            case .browseStationMode(let mode):
+                switch mode {
+                //case .languages: LanguagesListView().navigationTitle("Languages")
+                case .countries: CountriesListView().navigationTitle("Countries")
+                case .tags: TagsListView().navigationTitle("Tags")
+                }
+            }
         }
     }
 }
@@ -83,14 +90,24 @@ struct MusicPlayerView: View {
     @State var volume = 1.0
     @Environment(\.verticalSizeClass) var verticalSizeClass
 
+    var currentArtworkURL: URL? {
+        if let url = viewModel.currentTrackArtwork {
+            return url
+        }
+        if let favicon = viewModel.nowPlaying?.favicon, let faviconURL = URL(string: favicon) {
+            return faviconURL
+        }
+        return nil
+    }
+
     var body: some View {
         VStack {
             if let station = viewModel.nowPlaying {
                 if verticalSizeClass == .regular {
                     Spacer()
 
-                    if let favicon = station.favicon, let faviconURL = URL(string: favicon) {
-                        AsyncImage(url: faviconURL) { image in
+                    if let artworkURL = self.currentArtworkURL {
+                        AsyncImage(url: artworkURL) { image in
                             image.resizable()
                         } placeholder: {
                         }
@@ -188,14 +205,8 @@ struct MusicPlayerView: View {
 }
 
 struct BrowseStationsView: View {
-    enum BrowseStatonMode: Hashable {
-        //case languages // languages are not normalized and are full of garbage
-        case countries
-        case tags
-    }
-
     let usePicker = true // doesn't look great on Android
-    @State var selectedStationMode = BrowseStatonMode.countries
+    @State var selectedStationMode = BrowseStationMode.countries
 
     #if os(iOS) || os(Android)
     let pickerPlacement = ToolbarItemPlacement.navigationBarLeading
@@ -204,61 +215,51 @@ struct BrowseStationsView: View {
     #endif
 
     var body: some View {
-        NavigationStack {
-            Group {
-                if usePicker {
-                    TabView(selection: $selectedStationMode) {
-                        //LanguagesListView()
-                        //    .navigationTitle("Languages")
-                        //    #if os(iOS) || os(Android)
-                        //    .navigationBarTitleDisplayMode(.large)
-                        //    #endif
-                        //    .tag(BrowseStatonMode.languages)
-                        CountriesListView()
-                            .navigationTitle("Countries")
-                            #if os(iOS) || os(Android)
-                            .navigationBarTitleDisplayMode(.large)
-                            #endif
-                            .tag(BrowseStatonMode.countries)
-                        TagsListView()
-                            .navigationTitle("Tags")
-                            #if os(iOS) || os(Android)
-                            .navigationBarTitleDisplayMode(.large)
-                            #endif
-                            .tag(BrowseStatonMode.tags)
-                    }
-                    #if os(iOS) || os(Android)
-                    .tabViewStyle(.page(indexDisplayMode: .never))
-                    #endif
-                    .toolbar {
-                        ToolbarItem(placement: pickerPlacement) {
-                            Picker("Selection", selection: $selectedStationMode) {
-                                //Text("Languages").tag(BrowseStatonMode.languages)
-                                Text("Countries").tag(BrowseStatonMode.countries)
-                                Text("Tags").tag(BrowseStatonMode.tags)
-                                //Text("Search").tag(BrowseStatonMode.tags)
-                            }
-                            .pickerStyle(.segmented)
-                            .frame(maxWidth: 230)
+        Group {
+            if usePicker {
+                TabView(selection: $selectedStationMode) {
+                    //LanguagesListView()
+                    //    .navigationTitle("Languages")
+                    //    #if os(iOS) || os(Android)
+                    //    .navigationBarTitleDisplayMode(.large)
+                    //    #endif
+                    //    .tag(BrowseStationMode.languages)
+                    CountriesListView()
+                        .navigationTitle("Countries")
+                        #if os(iOS) || os(Android)
+                        .navigationBarTitleDisplayMode(.large)
+                        #endif
+                        .tag(BrowseStationMode.countries)
+                    TagsListView()
+                        .navigationTitle("Tags")
+                        #if os(iOS) || os(Android)
+                        .navigationBarTitleDisplayMode(.large)
+                        #endif
+                        .tag(BrowseStationMode.tags)
+                }
+                #if os(iOS) || os(Android)
+                .tabViewStyle(.page(indexDisplayMode: .never))
+                #endif
+                .toolbar {
+                    ToolbarItem(placement: pickerPlacement) {
+                        Picker("Selection", selection: $selectedStationMode) {
+                            //Text("Languages").tag(BrowseStationMode.languages)
+                            Text("Countries").tag(BrowseStationMode.countries)
+                            Text("Tags").tag(BrowseStationMode.tags)
+                            //Text("Search").tag(BrowseStationMode.tags)
                         }
-                    }
-                } else {
-                    List {
-                        //NavigationLink("Languages", value: BrowseStatonMode.languages)
-                        NavigationLink("Countries", value: BrowseStatonMode.countries)
-                        NavigationLink("Tags", value: BrowseStatonMode.tags)
-                    }
-                    .navigationTitle(Text("Browse Stations"))
-                    .navigationDestination(for: BrowseStatonMode.self) { mode in
-                        switch mode {
-                        //case .languages: LanguagesListView().navigationTitle("Languages")
-                        case .countries: CountriesListView().navigationTitle("Countries")
-                        case .tags: TagsListView().navigationTitle("Tags")
-                        }
+                        .pickerStyle(.segmented)
+                        .frame(maxWidth: 230)
                     }
                 }
+            } else {
+                List {
+                    //NavigationLink("Languages", value: BrowseStationMode.languages)
+                    NavigationLink("Countries", value: NavPath.browseStationMode(BrowseStationMode.countries))
+                    NavigationLink("Tags", value: NavPath.browseStationMode(BrowseStationMode.tags))
+                }
+                .navigationTitle(Text("Browse Stations"))
             }
-            .stationNavigationDestinations()
         }
     }
 }
@@ -351,7 +352,7 @@ struct LanguagesListView: View {
     }
 
     func languageLink(_ language: LanguageInfo) -> some View {
-        NavigationLink(value: StationQuery(title: language.localizedName, params: StationQueryParams(language: language.name, languageExact: true))) {
+        NavigationLink(value: NavPath.stationQuery(StationQuery(title: language.localizedName, params: StationQueryParams(language: language.name, languageExact: true)))) {
             Label {
                 HStack {
                     Text(language.localizedName)
@@ -462,7 +463,7 @@ struct CountriesListView: View {
     }
 
     func countryLink(_ country: CountryInfo) -> some View {
-        NavigationLink(value: StationQuery(title: country.localizedName, params: StationQueryParams(countrycode: country.name))) {
+        NavigationLink(value: NavPath.stationQuery(StationQuery(title: country.localizedName, params: StationQueryParams(countrycode: country.name)))) {
             Label {
                 HStack {
                     Text(country.localizedName)
@@ -583,7 +584,7 @@ struct TagsListView: View {
     }
 
     func tagLink(_ tag: TagInfo) -> some View {
-        NavigationLink(value: StationQuery(title: tag.localizedName, params: StationQueryParams(tag: tag.name))) {
+        NavigationLink(value: NavPath.stationQuery(StationQuery(title: tag.localizedName, params: StationQueryParams(tag: tag.name)))) {
             Label {
                 HStack {
                     Text(tag.localizedName)
@@ -736,7 +737,7 @@ struct StationListView: View {
     }
 
     func stationRow(_ station: APIStationInfo) -> some View {
-        NavigationLink(value: station) {
+        NavigationLink(value: NavPath.apiStationInfo(station)) {
             StationInfoRowView(station: station, showIcon: false)
         }
     }
@@ -760,7 +761,7 @@ struct StationInfoFormView: View {
 }
 
 struct StationInfoView: View {
-    let station: APIStationInfo
+    let station: StationInfo
     @Environment(ViewModel.self) var viewModel: ViewModel
     @State var newCollectionName = ""
     @State var addCollectionActive = false // whether we are showing the dialog for adding a new collection
@@ -770,7 +771,7 @@ struct StationInfoView: View {
         Form {
             StationInfoFormView(title: LocalizedStringResource("Station Name"), value: station.name)
             StationInfoFormView(title: LocalizedStringResource("Country"), value: station.countrycode)
-            StationInfoFormView(title: LocalizedStringResource("Bit Rate"), value: station.bitrate?.description)
+            //StationInfoFormView(title: LocalizedStringResource("Bit Rate"), value: station.bitrate?.description)
             StationInfoFormView(title: LocalizedStringResource("Tags"), value: station.tags)
             if let homepage = station.homepage, let homepageURL = URL(string: homepage) {
                 Link(homepage, destination: homepageURL)
@@ -888,22 +889,7 @@ extension View {
 }
 
 
-struct StationQuery: Hashable {
-    var title: String
-    var params: StationQueryParams = StationQueryParams()
-    var sortOption: StationSortOption = .popularity
-}
-
-enum StationSortOption: Identifiable, Hashable, CaseIterable {
-    case name
-    case popularity
-    case trend
-    case random
-
-    var id: StationSortOption {
-        self
-    }
-
+extension StationSortOption {
     var localizedTitle: LocalizedStringResource {
         switch self {
         case .name: return LocalizedStringResource("Name")
@@ -1077,7 +1063,7 @@ struct CollectionsListView: View {
         List {
             Section {
                 ForEach(standardCollections, id: \.0.id) { item in
-                    NavigationLink(value: item.0) {
+                    NavigationLink(value: NavPath.stationCollection(item.0)) {
                         HStack {
                             Text(item.0.localizedName)
                             Spacer()
@@ -1089,7 +1075,7 @@ struct CollectionsListView: View {
             }
             Section {
                 ForEach(customCollections, id: \.0.id) { item in
-                    NavigationLink(value: item.0) {
+                    NavigationLink(value: NavPath.stationCollection(item.0)) {
                         HStack {
                             Text(item.0.localizedName)
                             Spacer()
@@ -1171,7 +1157,7 @@ struct StationCollectionView: View {
             let stations = stationCollections.map(\.0)
             let infos = stationCollections.map(\.1)
             ForEach(stations) { station in
-                NavigationLink(value: station) {
+                NavigationLink(value: NavPath.storedStationInfo(station)) {
                     Text(station.name)
                 }
             }

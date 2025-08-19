@@ -28,11 +28,11 @@ final class TuneOutModelTests: XCTestCase {
         let collection2 = try db.ctx.insert(StationCollection(name: "Collection 2", sortOrder: 2.0))
         XCTAssertEqual(4, collection2.id)
 
-        let stored1 = try db.ctx.insert(StoredStationInfo(info: station1))
-        let stored2 = try db.ctx.insert(StoredStationInfo(info: station2))
-        let stored3 = try db.ctx.insert(StoredStationInfo(info: station3))
-        let stored4 = try db.ctx.insert(StoredStationInfo(info: station4))
-        let stored5 = try db.ctx.insert(StoredStationInfo(info: station5))
+        let stored1 = try db.ctx.insert(StoredStationInfo.create(from: station1))
+        let stored2 = try db.ctx.insert(StoredStationInfo.create(from: station2))
+        let stored3 = try db.ctx.insert(StoredStationInfo.create(from: station3))
+        let stored4 = try db.ctx.insert(StoredStationInfo.create(from: station4))
+        let stored5 = try db.ctx.insert(StoredStationInfo.create(from: station5))
 
         try db.addStation(stored1, toCollection: collection1)
         try db.addStation(stored2, toCollection: collection1)
