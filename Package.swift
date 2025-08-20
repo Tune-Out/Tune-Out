@@ -11,12 +11,12 @@ let package = Package(
         .library(name: "TuneOutModel", type: .dynamic, targets: ["TuneOutModel"]),
     ],
     dependencies: [
-        .package(url: "https://source.skip.tools/skip.git", from: "1.6.0"),
-        .package(url: "https://source.skip.tools/skip-ui.git", from: "1.0.0"),
-        .package(url: "https://source.skip.tools/skip-foundation.git", from: "1.0.0"),
-        .package(url: "https://source.skip.tools/skip-model.git", from: "1.0.0"),
-        .package(url: "https://source.skip.tools/skip-av.git", "0.0.0"..<"2.0.0"),
-        .package(url: "https://source.skip.tools/skip-sql.git", "0.0.0"..<"2.0.0"),
+        .package(url: "https://source.skip.tools/skip.git", from: "1.6.13"),
+        .package(url: "https://source.skip.tools/skip-ui.git", from: "1.39.0"),
+        .package(url: "https://source.skip.tools/skip-foundation.git", from: "1.3.9"),
+        .package(url: "https://source.skip.tools/skip-model.git", from: "1.6.0"),
+        .package(url: "https://source.skip.tools/skip-av.git", "0.5.3"..<"2.0.0"),
+        .package(url: "https://source.skip.tools/skip-sql.git", "0.12.0"..<"2.0.0"),
         .package(url: "https://github.com/appfair/appfair-app.git", from: "1.0.0"),
     ],
     targets: [
