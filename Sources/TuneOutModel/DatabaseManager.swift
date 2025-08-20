@@ -28,7 +28,7 @@ public final class DatabaseManager {
         version = try migrateSchema(v: 5, current: version, ddl: StationCollectionInfo.table.createTableSQL(withIndexes: true))
 
         // new COLLECTION_INFO.SORT_ORDER column and pre-populate any pre-existing NULLs with default values
-        version = try migrateSchema(v: 7, current: version, ddl: StationCollection.table.addColumnSQL(column: StationCollection.sortOrder, withIndexes: true) + [SQLExpression("UPDATE \(StationCollection.table.quotedName) SET \(StationCollection.sortOrder.quotedName) = ROWID WHERE \(StationCollection.sortOrder.quotedName) IS NULL")])
+        version = try migrateSchema(v: 7, current: version, ddl: StationCollection.table.addColumnSQL(column: StationCollection.sortOrder, withIndexes: true) + [SQLExpression("UPDATE \(StationCollection.table.quotedName()) SET \(StationCollection.sortOrder.quotedName()) = ROWID WHERE \(StationCollection.sortOrder.quotedName()) IS NULL")])
 
         version = try migrateSchema(v: 10, current: version, ddl: StoredStationInfo.table.addColumnSQL(column: StoredStationInfo.homepage, withIndexes: true))
     }
@@ -78,7 +78,11 @@ public extension DatabaseManager {
     }
 
     func fetchStation(stationuuid: UUID) throws -> StoredStationInfo? {
-        try ctx.query(StoredStationInfo.self, where: .equals(StoredStationInfo.stationuuid, SQLValue(stationuuid.uuidString))).load().first
+        try ctx.query(StoredStationInfo.self)
+            .where(.equals(StoredStationInfo.stationuuid, SQLValue(stationuuid.uuidString)))
+            .eval()
+            .load()
+            .first
     }
 
     func fetchCollection(id: StationCollection.ID) throws -> StationCollection? {
@@ -86,12 +90,16 @@ public extension DatabaseManager {
     }
 
     func fetchCollection(named name: String, create: Bool) throws -> StationCollection? {
-        if let collection = try ctx.query(StationCollection.self, where: .equals(StationCollection.name, SQLValue(name))).load().first {
+        if let collection = try ctx.query(StationCollection.self)
+            .where(.equals(StationCollection.name, SQLValue(name)))
+            .eval()
+            .load()
+            .first {
             return collection
         }
 
         if create {
-            let maxSortOrder = try ctx.selectAll(sql: "SELECT MAX(\(StationCollection.sortOrder.quotedName)) FROM \(StationCollection.table.quotedName)").first?.first?.realValue ?? 0.0
+            let maxSortOrder = try ctx.selectAll(sql: "SELECT MAX(\(StationCollection.sortOrder.quotedName())) FROM \(StationCollection.table.quotedName())").first?.first?.realValue ?? 0.0
 
             return try ctx.insert(StationCollection(name: name, sortOrder: maxSortOrder))
         }
@@ -100,7 +108,8 @@ public extension DatabaseManager {
     }
 
     func saveStation(_ station: StoredStationInfo, unlessExists: Bool = true) throws -> StoredStationInfo {
-        if unlessExists, let existingStation = try ctx.query(StoredStationInfo.self, where: .equals(StoredStationInfo.stationuuid, SQLValue(station.stationuuid?.uuidString))).load().first {
+        if unlessExists, let existingStation = try ctx.query(StoredStationInfo.self)
+            .where(.equals(StoredStationInfo.stationuuid, SQLValue(station.stationuuid?.uuidString))).eval().load().first {
             return existingStation
         }
         return try ctx.insert(station, upsert: true)
@@ -108,7 +117,7 @@ public extension DatabaseManager {
 
     func addStation(_ station: StoredStationInfo, toCollection collection: StationCollection) throws {
         // every addition to a collection will increment the sort order by 100
-        let maxSortOrder = try ctx.selectAll(sql: "SELECT MAX(\(StationCollectionInfo.sortOrder.quotedName)) FROM \(StationCollectionInfo.table.quotedName)").first?.first?.realValue ?? 0.0
+        let maxSortOrder = try ctx.selectAll(sql: "SELECT MAX(\(StationCollectionInfo.sortOrder.quotedName())) FROM \(StationCollectionInfo.table.quotedName())").first?.first?.realValue ?? 0.0
         try ctx.insert(StationCollectionInfo(stationID: station.id, collectionID: collection.id, sortOrder: maxSortOrder + 1.0), upsert: true)
     }
 
@@ -121,11 +130,20 @@ public extension DatabaseManager {
     }
 
     func fetchStations(inCollection collection: StationCollection) throws -> [(StoredStationInfo, StationCollectionInfo)] {
-        try ctx.query(StoredStationInfo.self, "t0", join: .inner, on: StationCollectionInfo.stationID, StationCollectionInfo.self, "t1", where: StationCollectionInfo.collectionID.alias("t1").equals(SQLValue(collection.id)), orderBy: [(StationCollectionInfo.sortOrder.alias("t1"), .descending)]).load().map({ ($0.0!, $0.1!) })
+        try ctx.query(StoredStationInfo.self, alias: "t0")
+            .join(StationCollectionInfo.self, alias: "t1", kind: .inner, on: StationCollectionInfo.stationID)
+            .where(StationCollectionInfo.collectionID.alias("t1").equals(SQLValue(collection.id)))
+            .orderBy(StationCollectionInfo.sortOrder.alias("t1"), order: .descending)
+            .eval()
+            .load()
+            .map({ ($0.0!, $0.1!) })
     }
 
     func shuffleStations(inCollection collection: StationCollection) throws {
-        var infos = try ctx.query(StationCollectionInfo.self, where: StationCollectionInfo.collectionID.equals(SQLValue(collection.id))).load()
+        var infos = try ctx.query(StationCollectionInfo.self)
+            .where(StationCollectionInfo.collectionID.equals(SQLValue(collection.id)))
+            .eval()
+            .load()
         infos.shuffle()
         for (order, var info) in infos.enumerated() {
             info.sortOrder = Double(order) + 1.0
@@ -134,33 +152,43 @@ public extension DatabaseManager {
     }
 
     @discardableResult func createCollection(named name: String, sortOrder: Double? = nil) throws -> StationCollection {
-        let sortOrder = try sortOrder ?? (ctx.selectAll(sql: "SELECT MAX(\(StationCollection.sortOrder.quotedName)) FROM \(StationCollection.table.quotedName)").first?.first?.realValue ?? 0.0)
+        let sortOrder = try sortOrder ?? (ctx.selectAll(sql: "SELECT MAX(\(StationCollection.sortOrder.quotedName())) FROM \(StationCollection.table.quotedName())").first?.first?.realValue ?? 0.0)
 
         return try ctx.insert(StationCollection(name: name, sortOrder: sortOrder))
     }
 
     func fetchAllCollections() throws -> [StationCollection] {
-        try ctx.query(StationCollection.self).load()
+        try ctx.query(StationCollection.self).eval().load()
     }
 
-    func fetchCollections(standard: Bool) throws -> [StationCollection] {
+    func fetchCollections(standard: Bool?) throws -> [StationCollection] {
         let standardCollectionQuery = SQLPredicate.in(StationCollection.name, [SQLValue(StationCollection.favoritesCollectionName), SQLValue(StationCollection.recentsCollectionName)])
 
-        return try ctx.query(StationCollection.self,
-                             where: standard ? standardCollectionQuery : .not(standardCollectionQuery),
-                             orderBy: [(StationCollection.sortOrder, .descending)]
-        ).load()
+        return try ctx.query(StationCollection.self)
+            .where(standard == true ? standardCollectionQuery : standard == false ? .not(standardCollectionQuery) : nil)
+            .orderBy(StationCollection.sortOrder, order: .descending)
+            .eval()
+            .load()
     }
 
     func fetchCollections(forStation station: StoredStationInfo) throws -> [StationCollection] {
-        try ctx.query(StationCollection.self, "t0", join: .inner, on: StationCollectionInfo.stationID, StationCollectionInfo.self, "t1", where: StationCollectionInfo.stationID.alias("t1").equals(SQLValue(station.id))).load().compactMap(\.0)
+        try ctx.query(StationCollection.self, alias: "t0")
+            .join(StationCollectionInfo.self, alias: "t1", kind: .inner, on: StationCollectionInfo.stationID)
+            .where(StationCollectionInfo.stationID.alias("t1").equals(SQLValue(station.id)))
+            .eval()
+            .load()
+            .compactMap(\.0)
     }
 
     func fetchCollectionCounts() throws -> [(StationCollection, Int)] {
         // TODO: SkipSQL currently does not support aggregate in joins, but doing something like this would be more efficient:
         //let collectionInfos: [(StationCollection, CountOf<StationCollectionInfo>)] = try ctx.query(StationCollection.self, "t0", join: .inner, on: StationCollectionInfo.collectionID, CountOf<StationCollectionInfo>.self, "t1").load()
 
-        let collectionInfos = try ctx.query(StationCollection.self, "t0", join: .left, on: StationCollectionInfo.collectionID, StationCollectionInfo.self, "t1", orderBy: [(StationCollection.sortOrder.alias("t0"), .descending)]).load()
+        let collectionInfos = try ctx.query(StationCollection.self, alias: "t0")
+            .join(StationCollectionInfo.self, alias: "t1", kind: .left, on: StationCollectionInfo.collectionID)
+            .orderBy(StationCollection.sortOrder.alias("t0"), order: .descending)
+            .eval()
+            .load()
 
         // build up a map of all the keys
         var collectionInfoCountMap: [StationCollection.ID: Int] = [:]
@@ -179,10 +207,6 @@ public extension DatabaseManager {
         }
         return collectionInfoCounts
     }
-
-//    @inline(__always) func update<T: SQLCodable>(_ ob: T) throws {
-//        try ctx.update(ob) // "Cannot use 'T' as reified type parameter. Use a class instead."
-//    }
 }
 
 /// A station stored locally
