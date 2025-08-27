@@ -1,22 +1,16 @@
 // SPDX-License-Identifier: GPL-2.0-or-later
-
 import SwiftUI
 import SkipAV
 import SkipSQL
 import TuneOutModel
 import AppFairUI
 
-enum ContentTab: String, Hashable {
-    case browse, collections, music, search, settings
-}
-
 struct ContentView: View {
-    @AppStorage("tab") var tab = ContentTab.browse
     @AppStorage("appearance") var appearance = ""
     @State var viewModel = ViewModel()
 
     var body: some View {
-        TabView(selection: $tab) {
+        TabView(selection: $viewModel.tab) {
             NavigationStack(path: $viewModel.browseNavigationPath) {
                 BrowseStationsView()
                     .stationNavigationDestinations()
@@ -40,7 +34,7 @@ struct ContentView: View {
                     Image("MusicCast", bundle: .module)
                 }
             }
-            .tag(ContentTab.music)
+            .tag(ContentTab.nowPlaying)
 
             NavigationStack {
                 StationListView(query: StationQuery(title: "Search"))
@@ -57,9 +51,10 @@ struct ContentView: View {
             .tabItem { Label("Settings", systemImage: "gearshape.fill") }
             .tag(ContentTab.settings)
         }
-//            .tabViewBottomAccessory {
-//                RadioPlayerView()
-//            }
+        //.tabViewBottomAccessory { // TODO: future enhancement
+        .overlay(alignment: .bottom) {
+            MiniPlayerView()
+        }
         .environment(viewModel)
         .preferredColorScheme(appearance == "dark" ? .dark : appearance == "light" ? .light : nil)
     }
@@ -81,6 +76,49 @@ extension View {
                 case .tags: TagsListView().navigationTitle("Tags")
                 }
             }
+        }
+    }
+}
+
+struct MiniPlayerView : View {
+    @Environment(ViewModel.self) var viewModel: ViewModel
+    @Environment(\.verticalSizeClass) var verticalSizeClass
+    @Environment(\.horizontalSizeClass) var horizontalSizeClass
+
+    // TODO: better adaptation to tab bar height
+    let tabBarHeight = 88.0
+
+    var body: some View {
+        HStack {
+            VStack {
+                Text((viewModel.curentTrackTitle ?? viewModel.nowPlaying?.name ?? "").trimmingCharacters(in: .whitespacesAndNewlines))
+                    .font(.title2)
+                Text((viewModel.nowPlaying?.name ?? "").trimmingCharacters(in: .whitespacesAndNewlines))
+                    .font(.title3)
+            }
+            .padding()
+            .lineLimit(1)
+            .multilineTextAlignment(.leading)
+            #if !SKIP
+            .truncationMode(.tail)
+            #endif
+            PlayPauseButton()
+        }
+        .padding(.horizontal)
+        .padding(.vertical, 8)
+        .background(BackgroundStyle.background.opacity(0.8))
+        //.background(.ultraThinMaterial)
+        .cornerRadius(12)
+        #if SKIP
+        .border(Color.gray, width: 0.5)
+        #else
+        .shadow(radius: 4) // shadow blurs the text in Skip as opposed to the radius
+        #endif
+        .padding(.horizontal)
+        .opacity(viewModel.tab == .nowPlaying ? 0.0 : 1.0)
+        .padding(.bottom, tabBarHeight)
+        .onTapGesture {
+            viewModel.tab = .nowPlaying
         }
     }
 }
@@ -141,25 +179,7 @@ struct MusicPlayerView: View {
 
                     Spacer()
 
-                    if viewModel.playerState == .playing {
-                        Button {
-                            viewModel.pause()
-                        } label: {
-                            Image("pause_pause_fill1_symbol", bundle: .module, label: Text("Pause the current station"))
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 40, height: 40)
-                        }
-                    } else {
-                        Button {
-                            viewModel.play(station)
-                        } label: {
-                            Image("play_arrow_play_arrow_fill1_symbol", bundle: .module, label: Text("Play the current station"))
-                                .resizable()
-                                .aspectRatio(contentMode: .fit)
-                                .frame(width: 40, height: 40)
-                        }
-                    }
+                    PlayPauseButton()
 
                     Spacer()
 
@@ -204,6 +224,31 @@ struct MusicPlayerView: View {
     }
 }
 
+struct PlayPauseButton : View {
+    @Environment(ViewModel.self) var viewModel: ViewModel
+
+    var body: some View {
+        if viewModel.playerState == .playing {
+            Button {
+                viewModel.pause()
+            } label: {
+                Image("pause_pause_fill1_symbol", bundle: .module, label: Text("Pause the current station"))
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 40, height: 40)
+            }
+        } else {
+            Button {
+                viewModel.play()
+            } label: {
+                Image("play_arrow_play_arrow_fill1_symbol", bundle: .module, label: Text("Play the current station"))
+                    .resizable()
+                    .aspectRatio(contentMode: .fit)
+                    .frame(width: 40, height: 40)
+            }
+        }
+    }
+}
 struct BrowseStationsView: View {
     let usePicker = true // doesn't look great on Android
     @State var selectedStationMode = BrowseStationMode.countries

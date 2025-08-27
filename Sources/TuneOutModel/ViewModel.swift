@@ -16,6 +16,8 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
 
 /// The Observable ViewModel used by the application.
 @Observable @MainActor public final class ViewModel {
+    public var tab = ContentTab.browse
+
     public let player = AVPlayer()
 
     public var playerState: PlayerState = .stopped
@@ -351,6 +353,10 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
     // Strong reference to the player's push delegate, since it is stored weakly
     private var outputPushDelegate: AVPlayerItemMetadataOutputPushDelegate? = nil
     #endif
+}
+
+public enum ContentTab: String, Hashable {
+    case browse, collections, nowPlaying, search, settings
 }
 
 /// The navigation path for various tabs in the app
