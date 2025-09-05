@@ -52,9 +52,10 @@ struct ContentView: View {
             .tag(ContentTab.settings)
         }
         //.tabViewBottomAccessory { // TODO: future enhancement
-        .overlay(alignment: .bottom) {
-            MiniPlayerView()
-        }
+        // TODO: make the miniplayer nicer
+        //.overlay(alignment: .bottom) {
+        //    MiniPlayerView()
+        //}
         .environment(viewModel)
         .preferredColorScheme(appearance == "dark" ? .dark : appearance == "light" ? .light : nil)
     }

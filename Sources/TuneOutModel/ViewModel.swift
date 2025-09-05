@@ -44,7 +44,7 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
     public var currentTrackArtwork: URL? = nil
     private static var audioSessionActivated = false
 
-    internal let db = try! DatabaseManager(url: URL.applicationSupportDirectory.appendingPathComponent("tuneout.sqlite"))
+    internal let db = try! DatabaseManager(url: databaseFolder.appendingPathComponent("tuneout.sqlite"))
     /// Any changes to the database will incremenet this counter via the update hook;
     /// We use this for views to re-execute any queries performed in a `withDatabase` block.
     private var databaseChanges = Int64(0)
@@ -56,6 +56,18 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
         withDatabase("nowPlaying") { db in
             try db.fetchStations(inCollection: self.recentsCollection).first?.0
         } ?? nil
+    }
+
+    /// The folder where the database is to be stored
+    ///
+    /// Creates the given file URL if it does not already exist
+    static var databaseFolder: URL {
+        get throws {
+            // note that the `applicationSupportDirectory` ()
+            let dir = URL.applicationSupportDirectory
+            try FileManager.default.createDirectory(at: dir, withIntermediateDirectories: true)
+            return dir
+        }
     }
 
     public init() {
