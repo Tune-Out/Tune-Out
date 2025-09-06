@@ -1298,9 +1298,11 @@ struct StationCollectionView: View {
                     .autocorrectionDisabled()
                     .focused($addCustomStationNameFocused)
                 TextField("Station URL", text: $addCustomStationURL)
+                    #if os(Android) || os(iOS)
                     .keyboardType(.URL)
                     .autocorrectionDisabled()
                     .textInputAutocapitalization(.never)
+                    #endif
                 Button("Add Station") {
                     let station = StoredStationInfo(stationuuid: UUID(), name: addCustomStationName, url: addCustomStationURL)
                     let savedStation = viewModel.withDatabase("save custom station") {
