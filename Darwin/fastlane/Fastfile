@@ -24,7 +24,7 @@ lane :release do |options|
 
   # if you have an apikey.json file (https://developer.apple.com/documentation/appstoreconnectapi/creating-api-keys-for-app-store-connect-api), fastlane can automatically fetch certificates and the ASC authentication information
   #get_certificates(api_key_path: "fastlane/apikey.json")
-  #get_provisioning_profile(api_key_path: "fastlane/apikey.json")
+  get_provisioning_profile(api_key_path: "fastlane/apikey.json")
 
   assemble
 
