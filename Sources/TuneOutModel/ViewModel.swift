@@ -197,6 +197,28 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
         !name.isEmpty && (try? db.fetchCollection(named: name, create: false)) == nil
     }
 
+    /// Returns whether a new station name is valid
+    public func isValidStationName(_ name: String) -> Bool {
+        !name.isEmpty
+    }
+
+    /// Returns whether a new station URL is valid
+    public func isValidStationURL(_ urlString: String) -> Bool {
+        if urlString.isEmpty {
+            return false
+        }
+
+        guard let url = URL(string: urlString) else {
+            return false
+        }
+
+        if url.scheme != "http" && url.scheme != "https" {
+            return false
+        }
+
+        return true
+    }
+
     public func addStation(_ station: StationInfo, to collection: StationCollection) throws {
         let storedStation = try db.saveStation(StoredStationInfo.create(from: station))
         try db.addStation(storedStation, toCollection: collection)

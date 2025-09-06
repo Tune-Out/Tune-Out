@@ -1,1 +1,1 @@
-A great new app built with Skip!
+An internet radio player.

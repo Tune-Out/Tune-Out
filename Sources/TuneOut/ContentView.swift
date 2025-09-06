@@ -819,9 +819,12 @@ struct StationInfoView: View {
             StationInfoFormView(title: LocalizedStringResource("Country"), value: station.countrycode)
             //StationInfoFormView(title: LocalizedStringResource("Bit Rate"), value: station.bitrate?.description)
             StationInfoFormView(title: LocalizedStringResource("Tags"), value: station.tags)
+
             if let homepage = station.homepage, let homepageURL = URL(string: homepage) {
                 Link(homepage, destination: homepageURL)
             }
+
+            StationInfoFormView(title: LocalizedStringResource("URL"), value: station.url)
 
             if let favicon = station.favicon, let faviconURL = URL(string: favicon) {
                 AsyncImage(url: faviconURL) { image in
@@ -840,12 +843,10 @@ struct StationInfoView: View {
             ToolbarItem {
                 Menu {
                     Text("Add to Collection")
-                    Button(viewModel.favoritesCollection.localizedName) {
-                        addStation(to: viewModel.favoritesCollection)
-                    }
-                    ForEach(viewModel.customCollections) { collection in
-                        Button(collection.localizedName) {
-                            addStation(to: collection)
+                    Section {
+                        addStationButton(to: viewModel.favoritesCollection)
+                        ForEach(viewModel.customCollections) { collection in
+                            addStationButton(to: collection)
                         }
                     }
                     Divider()
@@ -901,6 +902,21 @@ struct StationInfoView: View {
                 }
             }
             .disabled(!viewModel.isValidCollectionName(newCollectionName))
+        }
+    }
+
+    func addStationButton(to collection: StationCollection) -> some View {
+        let present = viewModel.withDatabase("check station in collection", block: { try $0.isStation(station, inCollection: collection )}) == true
+        return Button {
+            addStation(to: collection)
+        } label: {
+            Label {
+                Text(collection.localizedName)
+            } icon: {
+                if present {
+                    Image("check_small_check_small_symbol", bundle: .module)
+                }
+            }
         }
     }
 
@@ -1186,9 +1202,16 @@ struct CollectionsListView: View {
 
 struct StationCollectionView: View {
     @State var collection: StationCollection
+
+    @State var addCustomStationActive = false
+    @State var addCustomStationName = ""
+    @State var addCustomStationURL = ""
+    @FocusState var addCustomStationNameFocused: Bool
+
     @State var renameCollectionName = ""
     @State var renameCollectionActive = false // whether we are showing the dialog for adding a new collection
     @FocusState var renameCollectionNameFocused: Bool
+
     @Environment(ViewModel.self) var viewModel: ViewModel
 
     var stationsInCollection: [(StoredStationInfo, StationCollectionInfo)] {
@@ -1227,6 +1250,11 @@ struct StationCollectionView: View {
         .toolbar {
             ToolbarItem {
                 Menu {
+                    Button("Add Custom Station") {
+                        addCustomStationNameFocused = true
+                        addCustomStationActive = true
+                    }
+
                     Button("Rename Collection") {
                         // need to manually disable due to: https://github.com/skiptools/skip-ui/issues/246
                         if collection.isStandardCollection { return }
@@ -1235,6 +1263,7 @@ struct StationCollectionView: View {
                         renameCollectionActive = true
                     }
                     .disabled(collection.isStandardCollection)
+
                     Button("Shuffle") {
                         withAnimation {
                             viewModel.withDatabase("shuffle collection order") { db in
@@ -1262,6 +1291,33 @@ struct StationCollectionView: View {
                 }
             }
             .disabled(!viewModel.isValidCollectionName(renameCollectionName))
+        }
+        .sheet(isPresented: $addCustomStationActive) {
+            Form {
+                TextField("Station Name", text: $addCustomStationName)
+                    .autocorrectionDisabled()
+                    .focused($addCustomStationNameFocused)
+                TextField("Station URL", text: $addCustomStationURL)
+                    .keyboardType(.URL)
+                    .autocorrectionDisabled()
+                    .textInputAutocapitalization(.never)
+                Button("Add Station") {
+                    let station = StoredStationInfo(stationuuid: UUID(), name: addCustomStationName, url: addCustomStationURL)
+                    let savedStation = viewModel.withDatabase("save custom station") {
+                        let savedStation = try $0.saveStation(station)
+                        try $0.addStation(savedStation, toCollection: collection)
+                        return savedStation
+                    }
+                    addCustomStationActive = false
+                    if let savedStation {
+                        // push the saved station onto the nav stack to save it
+                        viewModel.collectionsNavigationPath.append(.storedStationInfo(savedStation))
+                    }
+                }
+                .buttonStyle(.borderedProminent)
+                .disabled(!viewModel.isValidStationName(addCustomStationName) || !viewModel.isValidStationURL(addCustomStationURL))
+            }
+            .presentationDetents([.medium])
         }
     }
 }

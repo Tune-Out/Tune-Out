@@ -128,6 +128,17 @@ public extension DatabaseManager {
     func removeStation(_ station: StoredStationInfo, fromCollection collection: StationCollection) throws {
         try ctx.delete(StationCollectionInfo.self, where: .equals(StationCollectionInfo.stationID, SQLValue(station.id)).and(.equals(StationCollectionInfo.collectionID, SQLValue(collection.id))))
     }
+    
+    /// Returns whether the given station is contained in the given collection.
+    func isStation(_ station: StationInfo, inCollection collection: StationCollection) throws -> Bool {
+        try ctx.query(StoredStationInfo.self, alias: "t0")
+            .where(StoredStationInfo.stationuuid.alias("t0").equals(SQLValue(station.stationuuid?.uuidString)))
+            .join(StationCollectionInfo.self, alias: "t1", kind: .inner, on: StationCollectionInfo.stationID)
+            .where(StationCollectionInfo.collectionID.alias("t1").equals(SQLValue(collection.id)))
+            .eval()
+            .load()
+            .first != nil
+    }
 
     func fetchStations(inCollection collection: StationCollection) throws -> [(StoredStationInfo, StationCollectionInfo)] {
         try ctx.query(StoredStationInfo.self, alias: "t0")
