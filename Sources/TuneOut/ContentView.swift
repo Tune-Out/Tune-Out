@@ -196,6 +196,7 @@ struct MusicPlayerView: View {
                     Spacer()
                 }
 
+                /* do we want a volume slider?
                 Slider(value: $volume, in: 0.0...1.0)
                     .padding()
                     .accessibilityLabel(Text("Volume"))
@@ -205,6 +206,7 @@ struct MusicPlayerView: View {
                     .onChange(of: volume) {
                         viewModel.player.volume = Float(volume)
                     }
+                 */
 
                 Text(viewModel.curentTrackTitle?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "")
                     .multilineTextAlignment(.center)
@@ -756,7 +758,7 @@ struct StationListView: View {
             self.complete = stations.count < queryBatchSize
             if !stations.isEmpty {
                 stations = cleanup(stations)
-                self.updateStations(ViewModel.unique(self.stations + stations))
+                self.updateStations(APIStationInfo.unique(self.stations + stations))
             }
             logger.log("loaded \(self.stations.count) stations")
         } catch {
@@ -873,17 +875,17 @@ struct StationInfoView: View {
                             .resizable()
                             .accessibilityLabel(Text("Pause Station"))
                             .font(.title)
-                            .frame(width: 25, height: 25)
+                            .frame(width: 20, height: 20)
                     }
                 } else {
                     Button {
                         viewModel.play(station)
-                        //self.selectedTab = .nowPlaying // TODO
+                        viewModel.tab = .nowPlaying // switch to the now playing tab when we start playing
                     } label: {
                         Image("play_arrow_play_arrow_fill1_symbol", bundle: .module, label: Text("Play"))
                             .resizable()
                             .accessibilityLabel(Text("Play Station"))
-                            .frame(width: 25, height: 25)
+                            .frame(width: 20, height: 25)
                     }
                 }
             }

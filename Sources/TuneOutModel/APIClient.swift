@@ -256,6 +256,24 @@ extension APIStationInfo: Identifiable {
     public var id: ID { stationuuid }
 }
 
+extension APIStationInfo {
+    /// Ensure that no duplicate IDs exist in the list of stations, which will crash on Android with:
+    /// `07-11 17:48:47.636 11894 11894 E AndroidRuntime: java.lang.IllegalArgumentException: Key "9617A958-0601-11E8-AE97-52543BE04C81" was already used. If you are using LazyColumn/Row please make sure you provide a unique key for each item.`
+    public static func unique(_ stations: [APIStationInfo]) -> [APIStationInfo] {
+        var uniqueStations: [APIStationInfo] = []
+        #if !SKIP
+        uniqueStations.reserveCapacity(stations.count)
+        #endif
+        var ids = Set<APIStationInfo.ID>()
+        for station in stations {
+            if ids.insert(station.id).inserted {
+                uniqueStations.append(station)
+            }
+        }
+        return uniqueStations
+    }
+}
+
 public struct QueryParams: Sendable {
     // name of the attribute the result list will be sorted by
     public var order: String?
