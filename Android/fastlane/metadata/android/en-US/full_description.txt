@@ -1,1 +1,5 @@
-A great new app built with Skip!
+Listen to internet radio stations from around the world. TuneOut provides access to a wide selection of live broadcasts, allowing you to explore music, news, and talk radio from different countries and genres.
+
+Discover stations by searching or browsing categories. You can save your favorite stations to custom collections for easy access. The app features a simple playback interface with controls for playing, pausing, and stopping the stream.
+
+TuneOut is your companion for listening to global internet radio. It offers a straightforward way to organize and access your preferred stations.
