@@ -227,6 +227,7 @@ public enum StationSortOption: String, Identifiable, Hashable, CaseIterable, Cod
     }
 }
 
+/// Implemented by both `StoredStationInfo` and `APIStationInfo`
 public protocol StationInfo {
     // name: Best Radio
     var name: String { get }
