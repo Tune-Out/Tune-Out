@@ -1,14 +1,14 @@
 # TuneOut
 
-This is a free [Skip](https://skip.tools) dual-platform app project.
-It builds a native app for both iOS and Android.
-
-## iOS Screenshots
+Tune-Out is a free and open-source internet radio player app
+built using [Skip](https://skip.tools).
 
 <div align="center">
   <a href="https://play.google.com/store/apps/details?id=org.appfair.app.Tune_Out" style="display: inline-block;"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Google_Play_Store_badge_EN.svg/2560px-Google_Play_Store_badge_EN.svg.png" alt="Download on the Play Store" style="height: 60px; vertical-align: middle; object-fit: contain;" /></a>
   <a href="https://apps.apple.com/us/app/tune-out/id1639901758" style="display: inline-block;"><img src="https://toolbox.marketingtools.apple.com/api/v2/badges/download-on-the-app-store/black/en-us" alt="Download on the App Store" style="height: 60px; vertical-align: middle; object-fit: contain;" /></a>
 </div>
+
+## iPhone Screenshots
 
 <img src="Darwin/fastlane/screenshots/en-US/1_en-US.png" width="190" /> <img src="Darwin/fastlane/screenshots/en-US/2_en-US.png" width="190" /> <img src="Darwin/fastlane/screenshots/en-US/3_en-US.png" width="190" /> <img src="Darwin/fastlane/screenshots/en-US/4_en-US.png" width="190" /> <img src="Darwin/fastlane/screenshots/en-US/5_en-US.png" width="190" />
 
