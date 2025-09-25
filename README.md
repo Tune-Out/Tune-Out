@@ -1,7 +1,8 @@
 # TuneOut
 
 Tune-Out is a free and open-source internet radio player app
-built using [Skip](https://skip.tools).
+built using [Skip](https://skip.tools)
+and distributed through the [App Fair](https://appfair.org).
 
 <div align="center">
   <a href="https://play.google.com/store/apps/details?id=org.appfair.app.Tune_Out" style="display: inline-block;"><img src="https://upload.wikimedia.org/wikipedia/commons/thumb/7/78/Google_Play_Store_badge_EN.svg/2560px-Google_Play_Store_badge_EN.svg.png" alt="Download on the Play Store" style="height: 60px; vertical-align: middle; object-fit: contain;" /></a>
