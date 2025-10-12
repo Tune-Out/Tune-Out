@@ -1,1 +1,2 @@
-Bug fixes and performance improvements.
+• Bug fixes and performance improvements.
+• Disable Liquid Glass
