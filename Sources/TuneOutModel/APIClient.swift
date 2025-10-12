@@ -9,6 +9,8 @@ let userAgent = "Tune-Out/\(appVersion)"
 public struct APIClient {
     nonisolated(unsafe) public static let shared = APIClient()
 
+    /// alternatively, fetch https://all.api.radio-browser.info/json/servers with should return:
+    /// `[{"ip":"2a01:4f9:c012:3620::1","name":"fi1.api.radio-browser.info"},{"ip":"2a01:4f8:c2c:f004::1","name":"de2.api.radio-browser.info"},{"ip":"2a0a:4cc0:c0:27c1::1","name":"de1.api.radio-browser.info"},{"ip":"37.27.202.89","name":"fi1.api.radio-browser.info"},{"ip":"162.55.180.156","name":"de2.api.radio-browser.info"},{"ip":"152.53.85.3","name":"de1.api.radio-browser.info"}]`
     public static let hostDefault = "all.api.radio-browser.info" // or de2.api.radio-browser.info or fi1.api.radio-browser.info or all.api.radio-browser.info
     public static let baseURLDefault: String = "https://\(hostDefault)/json"
 
