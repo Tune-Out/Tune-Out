@@ -9,7 +9,7 @@ let userAgent = "Tune-Out/\(appVersion)"
 public struct APIClient {
     nonisolated(unsafe) public static let shared = APIClient()
 
-    public static let hostDefault = "de1.api.radio-browser.info" // or de2.api.radio-browser.info or fi1.api.radio-browser.info or all.api.radio-browser.info
+    public static let hostDefault = "all.api.radio-browser.info" // or de2.api.radio-browser.info or fi1.api.radio-browser.info or all.api.radio-browser.info
     public static let baseURLDefault: String = "https://\(hostDefault)/json"
 
     /// The root URL for API requsts, configurable by the user
