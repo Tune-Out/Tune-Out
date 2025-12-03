@@ -10,6 +10,7 @@
 		491F27822DA55B72004926EE /* TuneOut in Frameworks */ = {isa = PBXBuildFile; productRef = 491F27812DA55B72004926EE /* TuneOut */; };
 		491F27832DA55B72004926EE /* TuneOut in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 491F27812DA55B72004926EE /* TuneOut */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
 		499CD43B2AC5B799001AE8D8 /* Main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49F90C2B2A52156200F06D93 /* Main.swift */; };
+		49E1C7FC2EE0EFF4008CA4A4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 49F90C2F2A52156300F06D93 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXCopyFilesBuildPhase section */
@@ -44,7 +45,6 @@
 			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
 			membershipExceptions = (
 				/Localized/Localizable.strings,
-				Module.xcassets,
 			);
 			target = 499CD4382AC5B799001AE8D8 /* TuneOut App */;
 		};
@@ -171,6 +171,7 @@
 			isa = PBXResourcesBuildPhase;
 			buildActionMask = 2147483647;
 			files = (
+				49E1C7FC2EE0EFF4008CA4A4 /* Assets.xcassets in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
