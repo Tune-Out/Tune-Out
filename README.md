@@ -20,7 +20,7 @@ and distributed through the [App Fair](https://appfair.org).
 
 ## Localization
 
-![Weblate project translated](https://img.shields.io/weblate/progress/tune-out)
+[![Weblate project translated](https://img.shields.io/weblate/progress/tune-out)](https://hosted.weblate.org/projects/tune-out)
 
 Would you like to contribute to translations into other language(s)?
 Please visit [Weblate](https://hosted.weblate.org/projects/tune-out).
