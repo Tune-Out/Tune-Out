@@ -18,6 +18,12 @@ and distributed through the [App Fair](https://appfair.org).
 
 <img alt="Android Screenshot" src="Android/fastlane/metadata/android/en-US/images/phoneScreenshots/1_en-US.png" style="width: 18%" /> <img alt="Android Screenshot" src="Android/fastlane/metadata/android/en-US/images/phoneScreenshots/2_en-US.png" style="width: 18%" /> <img alt="Android Screenshot" src="Android/fastlane/metadata/android/en-US/images/phoneScreenshots/3_en-US.png" style="width: 18%" /> <img alt="Android Screenshot" src="Android/fastlane/metadata/android/en-US/images/phoneScreenshots/4_en-US.png" style="width: 18%" /> <img alt="Android Screenshot" src="Android/fastlane/metadata/android/en-US/images/phoneScreenshots/5_en-US.png" style="width: 18%" />
 
+## Localization
+
+![Weblate project translated](https://img.shields.io/weblate/progress/tune-out)
+
+Would you like to contribute to translations into other language(s)?
+Please visit [Weblate](https://hosted.weblate.org/projects/tune-out).
 
 ## Building
 
