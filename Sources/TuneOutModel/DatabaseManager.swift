@@ -2,6 +2,7 @@
 
 import Foundation
 import SkipSQL
+import SkipSQLCore
 
 /// Provides serialized, strongly-typed access to data items.
 public final class DatabaseManager {
@@ -9,7 +10,7 @@ public final class DatabaseManager {
     private var schemaInitializationResult: Result<Void, Error>?
 
     public init(url: URL?) throws {
-        ctx = try SQLContext(path: url?.path ?? ":memory:", flags: [.readWrite, .create])
+        ctx = try SQLContext(path: url?.path ?? ":memory:", flags: [.readWrite, .create], configuration: .platform)
         ctx.trace { sql in
             logger.info("SQL: \(sql)")
         }
