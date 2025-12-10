@@ -2,6 +2,7 @@
 import SwiftUI
 import SkipAV
 import SkipSQL
+import SkipSQLCore
 import TuneOutModel
 import AppFairUI
 
