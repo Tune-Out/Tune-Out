@@ -69,9 +69,8 @@ final class TuneOutModelTests: XCTestCase {
         XCTAssertEqual(0, try db.ctx.count(StationCollectionInfo.self), "relation rows should have been cascade deleted")
     }
 
-    // MARK: API tests (disabled from macOS runs for performance)
+    // MARK: API tests (many disabled from macOS runs for performance)
 
-    #if os(iOS)
     func testCountryList() async throws {
         let countries = try await APIClient.shared.fetchCountries()
         XCTAssertTrue(countries.map(\.name).contains("US"))
@@ -79,6 +78,9 @@ final class TuneOutModelTests: XCTestCase {
         let countriesFilter = try await APIClient.shared.fetchCountries(filter: "FR")
         XCTAssertGreaterThanOrEqual(countriesFilter.count, 1)
     }
+
+
+    #if os(iOS)
 
     func testLanguageList() async throws {
         let languages = try await APIClient.shared.fetchLanguages()
@@ -109,7 +111,7 @@ final class TuneOutModelTests: XCTestCase {
     func testStationSearch() async throws {
         do {
             // unknown codec
-            let stations = try await APIClient.shared.searchStations(query: StationQueryParams(tag: "rock", codec: "XXX"), params: QueryParams(order: "country", reverse: true, hidebroken: true, offset: 10, limit: 10))
+            let stations = try await APIClient.shared.searchStations(query: StationQueryParams(tag: "rock", codec: "XXX"), params: QueryParams(order: "country", reverse: true, hidebroken: true, has_extended_info: true, offset: 10, limit: 10))
             XCTAssertEqual(0, stations.count)
         }
 
@@ -120,7 +122,7 @@ final class TuneOutModelTests: XCTestCase {
         }
 
         do {
-            let stations = try await APIClient.shared.searchStations(query: StationQueryParams(name: nil, nameExact: false, country: nil, countryExact: false, countrycode: nil, state: nil, stateExact: false, language: nil, languageExact: false, tag: nil, tagExact: false, tagList: "jazz,rock", codec: nil, bitrateMin: 0, bitrateMax: 100000, has_geo_info: false, has_extended_info: false, is_https: true), params: QueryParams(order: "country", reverse: true, hidebroken: true, offset: 10, limit: 10))
+            let stations = try await APIClient.shared.searchStations(query: StationQueryParams(name: nil, nameExact: false, country: nil, countryExact: false, countrycode: nil, state: nil, stateExact: false, language: nil, languageExact: false, tag: nil, tagExact: false, tagList: "jazz,rock", codec: nil, bitrateMin: 0, bitrateMax: 100000, has_geo_info: false, has_extended_info: false, is_https: true), params: QueryParams(order: "country", reverse: true, hidebroken: true, has_extended_info: true, offset: 10, limit: 10))
             logger.debug("stations: \(stations.map(\.name))")
             XCTAssertEqual(10, stations.count)
         }

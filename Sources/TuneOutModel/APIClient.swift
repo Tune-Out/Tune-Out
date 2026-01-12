@@ -68,29 +68,31 @@ public struct APIClient {
         return try decoder.decode([T].self, from: data)
     }
 
+    public var defaultParams: QueryParams = QueryParams(offset: 0, limit: 1000)
+
     /// https://docs.radio-browser.info/#list-of-country-codes
     public func fetchCountries(filter: String? = nil, params: QueryParams? = nil) async throws -> [CountryInfo] {
-        try await fetchArray(CountryInfo.self, endpoint: "countrycodes", filter: filter, params: params?.queryItems)
+        try await fetchArray(CountryInfo.self, endpoint: "countrycodes", filter: filter, params: (params ?? defaultParams).queryItems)
     }
 
     /// https://docs.radio-browser.info/#list-of-languages
     public func fetchLanguages(filter: String? = nil, params: QueryParams? = nil) async throws -> [LanguageInfo] {
-        try await fetchArray(LanguageInfo.self, endpoint: "languages", filter: filter, params: params?.queryItems)
+        try await fetchArray(LanguageInfo.self, endpoint: "languages", filter: filter, params: (params ?? defaultParams).queryItems)
     }
 
     /// https://docs.radio-browser.info/#list-of-languages
     public func fetchTags(filter: String? = nil, params: QueryParams? = nil) async throws -> [TagInfo] {
-        try await fetchArray(TagInfo.self, endpoint: "tags", filter: filter, params: params?.queryItems)
+        try await fetchArray(TagInfo.self, endpoint: "tags", filter: filter, params: (params ?? defaultParams).queryItems)
     }
 
     /// https://docs.radio-browser.info/#list-of-radio-stations
     public func fetchStations(filter: StationFilter? = nil, params: QueryParams? = nil) async throws -> [APIStationInfo] {
-        try await fetchArray(APIStationInfo.self, endpoint: "stations", filter: filter?.asQuery, params: params?.queryItems)
+        try await fetchArray(APIStationInfo.self, endpoint: "stations", filter: filter?.asQuery, params: (params ?? defaultParams).queryItems)
     }
 
     /// https://docs.radio-browser.info/#advanced-station-search
     public func searchStations(query: StationQueryParams, params: QueryParams? = nil) async throws -> [APIStationInfo] {
-        try await fetchArray(APIStationInfo.self, endpoint: "stations/search", filter: nil, params: query.queryItems + (params?.queryItems ?? []))
+        try await fetchArray(APIStationInfo.self, endpoint: "stations/search", filter: nil, params: query.queryItems + ((params ?? defaultParams).queryItems ?? []))
     }
 
     public func click(id: UUID) async throws -> ClickResponse {
@@ -283,15 +285,18 @@ public struct QueryParams: Sendable {
     public var reverse: Bool?
     // do not count broken stations
     public var hidebroken: Bool?
+    // "verified" stations
+    public var has_extended_info: Bool?
     // starting value of the result list from the database. For example, if you want to do paging on the server side.
     public var offset: Int?
     // number of returned data rows (stations) starting with offset
     public var limit: Int?
 
-    public init(order: String? = nil, reverse: Bool? = nil, hidebroken: Bool? = nil, offset: Int? = nil, limit: Int? = nil) {
+    public init(order: String? = nil, reverse: Bool? = nil, hidebroken: Bool? = nil, has_extended_info: Bool? = nil, offset: Int? = nil, limit: Int? = nil) {
         self.order = order
         self.reverse = reverse
         self.hidebroken = hidebroken
+        self.has_extended_info = has_extended_info
         self.offset = offset
         self.limit = limit
     }
@@ -306,6 +311,9 @@ public struct QueryParams: Sendable {
         }
         if let hidebroken = hidebroken {
             items.append(URLQueryItem(name: "hidebroken", value: "\(hidebroken)"))
+        }
+        if let has_extended_info = has_extended_info {
+            items.append(URLQueryItem(name: "has_extended_info", value: "\(has_extended_info)"))
         }
         if let offset = offset {
             items.append(URLQueryItem(name: "offset", value: "\(offset)"))
