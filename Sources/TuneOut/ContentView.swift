@@ -3,11 +3,13 @@ import SwiftUI
 import SkipAV
 import SkipSQL
 import SkipSQLCore
+import SkipMarketplace
 import TuneOutModel
 import AppFairUI
 
 struct ContentView: View {
     @AppStorage("appearance") var appearance = ""
+    @AppStorage("launchCount") var launchCount = 0
     @State var viewModel = ViewModel()
 
     var body: some View {
@@ -59,6 +61,13 @@ struct ContentView: View {
         //}
         .environment(viewModel)
         .preferredColorScheme(appearance == "dark" ? .dark : appearance == "light" ? .light : nil)
+        .task { @MainActor in
+            launchCount += 1
+            if launchCount > 20 {
+                // they seem to like the app, so request a review
+                Marketplace.current.requestReview(period: .days(31))
+            }
+        }
     }
 }
 
@@ -753,7 +762,12 @@ struct StationListView: View {
         }
         do {
             let (sortAttr, reverse) = query.sortOption.sortAttribute
-            let params = QueryParams(order: sortAttr, reverse: reverse, hidebroken: true, offset: self.stations.count, limit: queryBatchSize)
+            var params: QueryParams = viewModel.queryParams
+            params.order = sortAttr
+            params.reverse = reverse
+            params.offset = self.stations.count
+            params.limit = queryBatchSize
+
             logger.log("loading stations for \(query.params.queryItems)…")
             var stations = try await APIClient.shared.searchStations(query: query.params, params: params)
             self.complete = stations.count < queryBatchSize
@@ -782,6 +796,8 @@ struct StationListView: View {
             station.name = station.name.trimmingCharacters(in: .whitespacesAndNewlines)
             station.tags = station.tags?.trimmingCharacters(in: .whitespacesAndNewlines)
             return station
+        }.filter {
+            !ViewModel.excludedStations.contains($0.id?.uuidString.lowercased() ?? "")
         }
     }
 
@@ -1375,14 +1391,21 @@ struct StationInfoRowView: View {
 
 struct SettingsView: View {
     @Binding var appearance: String
+    @Environment(ViewModel.self) var viewModel: ViewModel
 
     var body: some View {
+        @Bindable var viewModel = viewModel
+
         AppFairSettings {
             Picker("Appearance", selection: $appearance) {
                 Text("System").tag("")
                 Text("Light").tag("light")
                 Text("Dark").tag("dark")
             }
+
+            Toggle("Hide Broken Stations", isOn: $viewModel.hideBrokenStations)
+            //Toggle("Hide Unverified Stations", isOn: $viewModel.hideUnverifiedStations) // hides almost everything
+
             if let version = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? String,
                let buildNumber = Bundle.main.infoDictionary?["CFBundleVersion"] as? String {
                 Text("Version \(version) (\(buildNumber))")

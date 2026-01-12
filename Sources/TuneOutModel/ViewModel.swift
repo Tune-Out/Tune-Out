@@ -18,6 +18,19 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
         }
     }
 
+//    // adds has_extended_info, which is broken
+//    public var hideUnverifiedStations: Bool = (!UserDefaults.standard.bool(forKey: "showUnverifiedStations")) {
+//        didSet {
+//            UserDefaults.standard.set(!hideUnverifiedStations, forKey: "showUnverifiedStations")
+//        }
+//    }
+
+    public var hideBrokenStations: Bool = (!UserDefaults.standard.bool(forKey: "showBrokenStations")) {
+        didSet {
+            UserDefaults.standard.set(!hideBrokenStations, forKey: "showBrokenStations")
+        }
+    }
+
     private var playerController: PlayerController!
 
     public var playerState: PlayerState = .stopped
@@ -47,8 +60,13 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
     /// We use this for views to re-execute any queries performed in a `withDatabase` block.
     private var databaseChanges = Int64(0)
 
-    // TODO: enable setting hidebroken from user preference
-    public let queryParams = QueryParams(order: nil, reverse: nil, hidebroken: true, offset: nil, limit: nil)
+    /// Manually excluded stations for
+    public static let excludedStations: Set<String> = [
+    ]
+
+    public var queryParams: QueryParams {
+        QueryParams(order: nil, reverse: false, hidebroken: hideBrokenStations, has_extended_info: nil, offset: 0, limit: 500)
+    }
 
     public var nowPlaying: StoredStationInfo? {
         withDatabase("nowPlaying") { db in
