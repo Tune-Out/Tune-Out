@@ -61,8 +61,7 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
     private var databaseChanges = Int64(0)
 
     /// Manually excluded stations for
-    public static let excludedStations: Set<String> = [
-    ]
+    public var excludedStations: Set<String> = []
 
     public var queryParams: QueryParams {
         QueryParams(order: nil, reverse: false, hidebroken: hideBrokenStations, has_extended_info: nil, offset: 0, limit: 500)

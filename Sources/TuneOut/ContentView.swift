@@ -63,10 +63,44 @@ struct ContentView: View {
         .preferredColorScheme(appearance == "dark" ? .dark : appearance == "light" ? .light : nil)
         .task { @MainActor in
             launchCount += 1
-            if launchCount > 20 {
+            logger.log("launchCount: \(launchCount)")
+            if launchCount >= 20 && (launchCount % 10 == 0) {
                 // they seem to like the app, so request a review
                 Marketplace.current.requestReview(period: .days(31))
             }
+
+            //let installationSource = await Marketplace.current.installationSource
+            //logger.log("installationSource: \(installationSource)")
+            if true { // }|| installationSource.isFirstPartyAppStore {
+                // exclude problematic stations (https://github.com/Tune-Out/Tune-Out/issues/12)
+                viewModel.excludedStations.formUnion([
+                    "03ecebf1-7164-11e9-af37-52543be04c81",
+                    "1eb4a95f-2360-4ded-ae9b-0aa7b442311e",
+                    "285a6790-c0ae-45f3-ad14-6f6f75642bcb",
+                    "9cc28ab2-914b-4ae8-a5b8-4ce3b1fba37b",
+                    "ba81e7e3-b7e3-4bc8-869c-1a3c0412c5e2",
+                    "2ab42a44-525c-4b03-8e27-1bb5ea389005",
+                    "80c2932d-122d-49eb-a65b-dd41aad520a5",
+                    "db145cff-6ea6-4382-ad96-19183eb58079",
+                    "961a4cdd-0601-11e8-ae97-52543be04c81",
+                    "e91f98e4-35af-4342-899f-9bcacb6482ad",
+                    "301feb00-c062-468b-85f1-304e1987c110",
+                    "785f8305-e4f9-4648-8425-de185428ede7",
+                    "1eb520fb-5bef-44f2-ba53-66d3fc996fc8",
+                    "0483f62b-74bd-402b-8dde-601147eb6d4f",
+                    "a0fe3b03-32b3-4d37-acd1-d8aa606c0c8c",
+                    "963674ca-0601-11e8-ae97-52543be04c81",
+                    "21c7cf3d-870a-4034-991e-c45e9bcfc7b6",
+                    "6a8404a3-2e8b-4c66-9725-d68b311b766e",
+                    "96501737-0601-11e8-ae97-52543be04c81",
+                    "4b8e66eb-595a-4a6d-8dfb-46cb80a34acd",
+                    "3da2910e-3a5d-4d57-90bb-7fe6f00b29f8",
+                    "4b1c00b7-53ef-4168-bf8e-1a0fa6a9298c",
+                    "f0c777d1-484d-420c-a5d4-9f91088b8c25",
+                    "510aeeac-e7a0-41c2-aea2-e572e811ffe7",
+                ])
+            }
+
         }
     }
 }
@@ -797,7 +831,7 @@ struct StationListView: View {
             station.tags = station.tags?.trimmingCharacters(in: .whitespacesAndNewlines)
             return station
         }.filter {
-            !ViewModel.excludedStations.contains($0.id?.uuidString.lowercased() ?? "")
+            !viewModel.excludedStations.contains($0.id?.uuidString.lowercased() ?? "")
         }
     }
 
