@@ -1,2 +1,2 @@
 • Bug fixes and performance improvements.
-• Disable Liquid Glass
+• Enable Liquid Glass
