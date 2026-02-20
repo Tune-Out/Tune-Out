@@ -376,7 +376,7 @@ struct PlayPauseButton : View {
 }
 struct BrowseStationsView: View {
     let usePicker = true // doesn't look great on Android
-    @State var selectedStationMode = BrowseStationMode.countries
+    @Environment(ViewModel.self) var viewModel: ViewModel
 
     #if os(iOS) || os(Android)
     let pickerPlacement = ToolbarItemPlacement.navigationBarLeading
@@ -385,9 +385,10 @@ struct BrowseStationsView: View {
     #endif
 
     var body: some View {
+        @Bindable var viewModel = viewModel
         Group {
             if usePicker {
-                TabView(selection: $selectedStationMode) {
+                TabView(selection: $viewModel.browseStationMode) {
                     //LanguagesListView()
                     //    .navigationTitle("Languages")
                     //    #if os(iOS) || os(Android)
@@ -412,7 +413,7 @@ struct BrowseStationsView: View {
                 #endif
                 .toolbar {
                     ToolbarItem(placement: pickerPlacement) {
-                        Picker("Selection", selection: $selectedStationMode) {
+                        Picker("Selection", selection: $viewModel.browseStationMode) {
                             //Text("Languages").tag(BrowseStationMode.languages)
                             Text("Countries").tag(BrowseStationMode.countries)
                             Text("Tags").tag(BrowseStationMode.tags)

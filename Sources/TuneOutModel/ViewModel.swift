@@ -40,6 +40,8 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
         case paused
     }
 
+    public var browseStationMode: BrowseStationMode = .countries
+
     public var browseNavigationPath: [NavPath] = [] {
         didSet {
             logger.log("browseNavigationPath: \(self.browseNavigationPath)")
