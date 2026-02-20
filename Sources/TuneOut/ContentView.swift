@@ -191,6 +191,7 @@ struct MusicPlayerView: View {
     }
 
     var currentArtworkURL: URL? {
+        logger.log("currentArtworkURL: \(String(describing: viewModel.currentTrackArtwork))")
         if let url = viewModel.currentTrackArtwork {
             return url
         }

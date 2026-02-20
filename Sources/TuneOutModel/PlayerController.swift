@@ -22,6 +22,10 @@ import androidx.media3.session.SessionToken
 import androidx.media3.session.MediaController
 import androidx.media3.session.MediaSession
 import androidx.media3.session.MediaSessionService
+import androidx.media3.extractor.metadata.icy.IcyInfo
+import androidx.media3.common.Metadata
+import androidx.media3.common.ForwardingPlayer
+import android.net.Uri
 #endif
 
 
@@ -259,11 +263,29 @@ import androidx.media3.session.MediaSessionService
     private func configurePlayerListener(for item: AVPlayerItem) {
         #if SKIP
         // the Player.Listener is set on the player itself, so only set it once…
+        // Set the static callback so IcyMetadataListener in PlayBackService can
+        // update the ViewModel directly when ICY artwork metadata is received
+        IcyMetadataListener.artworkCallback = { artworkUrl in
+            logger.log("setting artworkUrl: \(artworkUrl)")
+            self.viewModel.currentTrackArtwork = URL(string: artworkUrl)
+        }
+
         if self.playerListener == nil {
             let listener = PlayerListener { metadata in
                 self.updateCurrentTrack(title: metadata.title?.description)
                 if let artworkUri = metadata.artworkUri {
-                    viewModel.currentTrackArtwork = URL(string: artworkUri.toString())
+                    // Artwork URI from MediaMetadata — set by IcyArtworkForwardingPlayer
+                    // for ICY streams, or natively by ExoPlayer for other stream types
+                    self.viewModel.currentTrackArtwork = URL(string: artworkUri.toString())
+                } else if let title = metadata.title?.description, title.contains("amgArtworkURL=\"") {
+                    // Fallback: parse artwork URL embedded in title (e.g., iHeartRadio)
+                    let parts = title.components(separatedBy: "amgArtworkURL=\"")
+                    if parts.count > 1 {
+                        let urlPart = parts[1].components(separatedBy: "\"")[0]
+                        if urlPart.hasPrefix("http://") || urlPart.hasPrefix("https://") {
+                            self.viewModel.currentTrackArtwork = URL(string: urlPart)
+                        }
+                    }
                 }
             }
             self.playerListener = listener
@@ -344,8 +366,9 @@ final class PlayerListener: Player.Listener {
     }
 
     // Listen for metadata updates (important for streams)
+    // For ICY streams, artworkUri is enriched by IcyArtworkForwardingPlayer in PlayBackService
     override func onMediaMetadataChanged(mediaMetadata: MediaMetadata) {
-        logger.log("metadata updated: title: \(mediaMetadata.title) artist: \(mediaMetadata.artist) albumTitle: \(mediaMetadata.artworkUri) zrtwork URI: \(mediaMetadata.artworkUri)")
+        logger.log("metadata updated: title: \(mediaMetadata.title) artist: \(mediaMetadata.artist) artwork URI: \(mediaMetadata.artworkUri)")
         metadataCallback(mediaMetadata)
     }
 
@@ -389,6 +412,73 @@ extension AVMetadataItem {
 #endif
 
 #if SKIP
+/// A ForwardingPlayer that enriches MediaMetadata with ICY stream artwork URIs.
+/// ExoPlayer does not map IcyInfo.url to MediaMetadata.artworkUri, and raw
+/// Metadata events (onMetadata) are not forwarded through MediaSession/MediaController.
+/// This player overrides getMediaMetadata() to include the ICY artwork URI when available,
+/// so it flows through the session bridge to the controller automatically.
+class IcyArtworkForwardingPlayer : ForwardingPlayer {
+    var icyArtworkUri: Uri? = nil
+
+    init(player: Player) {
+        super.init(player)
+    }
+
+    override func getMediaMetadata() -> MediaMetadata {
+        let base = super.getMediaMetadata()
+        if base.artworkUri != nil { return base }
+        guard let artworkUri = icyArtworkUri else { return base }
+        return base.buildUpon().setArtworkUri(artworkUri).build()
+    }
+}
+
+/// Listener that captures ICY stream metadata and updates the ForwardingPlayer's artwork URI.
+/// Must be added to the ForwardingPlayer (not the underlying ExoPlayer) so that it fires
+/// before the MediaSession's internal listener processes onMediaMetadataChanged.
+class IcyMetadataListener : Player.Listener {
+    let forwardingPlayer: IcyArtworkForwardingPlayer
+    /// Static callback set by PlayerController to update the ViewModel directly
+    /// when ICY artwork metadata is received.
+    static var artworkCallback: ((String) -> ())? = nil
+
+    init(forwardingPlayer: IcyArtworkForwardingPlayer) {
+        self.forwardingPlayer = forwardingPlayer
+    }
+
+    private func handleArtworkUrl(_ urlString: String) {
+        forwardingPlayer.icyArtworkUri = Uri.parse(urlString)
+        IcyMetadataListener.artworkCallback?(urlString)
+    }
+
+    override func onMetadata(metadata: Metadata) {
+        for i in 0..<metadata.length() {
+            let entry = metadata.get(i)
+            if let icyInfo = entry as? IcyInfo {
+                logger.log("ICY metadata - title: \(icyInfo.title) url: \(icyInfo.url)")
+                // Check IcyInfo.url for an artwork image URL (the ICY StreamUrl field)
+                if let url = icyInfo.url, !url.isEmpty {
+                    let path = url.components(separatedBy: "?")[0].lowercased()
+                    if (url.hasPrefix("http://") || url.hasPrefix("https://"))
+                        && (path.hasSuffix("png") || path.hasSuffix("gif")
+                            || path.hasSuffix("jpg") || path.hasSuffix("jpeg")) {
+                        handleArtworkUrl(url)
+                    }
+                }
+                // Check for artwork URL embedded in ICY title (e.g., iHeartRadio amgArtworkURL)
+                else if let title = icyInfo.title, title.contains("amgArtworkURL=\"") {
+                    let parts = title.components(separatedBy: "amgArtworkURL=\"")
+                    if parts.count > 1 {
+                        let urlPart = parts[1].components(separatedBy: "\"")[0]
+                        if urlPart.hasPrefix("http://") || urlPart.hasPrefix("https://") {
+                            handleArtworkUrl(urlPart)
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 /// This service name is referenced in the `AndroidManifest.xml`
 public final class PlayBackService : MediaSessionService {
     private var mediaSession: MediaSession?
@@ -401,8 +491,11 @@ public final class PlayBackService : MediaSessionService {
         super.onCreate()
         logger.log("PlayBackService: onCreate")
 
-        let player = ExoPlayer.Builder(self).build()
-        mediaSession = MediaSession.Builder(self, player)
+        let exoPlayer = ExoPlayer.Builder(self).build()
+        let forwardingPlayer = IcyArtworkForwardingPlayer(player: exoPlayer)
+        forwardingPlayer.addListener(IcyMetadataListener(forwardingPlayer: forwardingPlayer))
+
+        mediaSession = MediaSession.Builder(self, forwardingPlayer)
             .setId("Tune-Out") // session identifier
             .build()
     }
