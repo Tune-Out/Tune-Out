@@ -170,8 +170,14 @@ struct MiniPlayerView : View {
 
 struct MusicPlayerView: View {
     @Environment(ViewModel.self) var viewModel: ViewModel
-    @State var volume = 1.0
     @Environment(\.verticalSizeClass) var verticalSizeClass
+
+    var isCurrentStationFavorite: Bool {
+        guard let station = viewModel.nowPlaying else { return false }
+        return viewModel.withDatabase("check favorite") { db in
+            try db.isStation(station, inCollection: viewModel.favoritesCollection)
+        } == true
+    }
 
     var currentArtworkURL: URL? {
         if let url = viewModel.currentTrackArtwork {
@@ -184,88 +190,156 @@ struct MusicPlayerView: View {
     }
 
     var body: some View {
-        VStack {
+        ZStack {
+            // Dark gradient background inspired by Apple Music
+            LinearGradient(
+                colors: [Color.gray.opacity(0.3), Color.black],
+                startPoint: .top,
+                endPoint: .bottom
+            )
+            .ignoresSafeArea()
+
             if let station = viewModel.nowPlaying {
-                if verticalSizeClass == .regular {
-                    Spacer()
+                VStack(spacing: 0) {
+                    if verticalSizeClass == .regular {
+                        Spacer()
+                            .frame(maxHeight: 32)
 
-                    if let artworkURL = self.currentArtworkURL {
-                        AsyncImage(url: artworkURL) { image in
-                            image.resizable()
-                        } placeholder: {
+                        // Large artwork with rounded corners
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 16)
+                                .fill(Color.gray.opacity(0.15))
+                            if let artworkURL = currentArtworkURL {
+                                AsyncImage(url: artworkURL) { image in
+                                    image.resizable()
+                                        .scaledToFit()
+                                } placeholder: {
+                                    ProgressView()
+                                        .foregroundStyle(Color.gray)
+                                }
+                            } else {
+                                Image(systemName: "music.note")
+                                    .foregroundStyle(Color.gray.opacity(0.4))
+                                    .font(.largeTitle)
+                            }
                         }
-                        .scaledToFit()
-                        .frame(width: 200, height: 200)
+                        .aspectRatio(1, contentMode: .fit)
+                        .clipShape(RoundedRectangle(cornerRadius: 16))
+                        #if !SKIP
+                        .shadow(color: .black.opacity(0.5), radius: 20, x: 0, y: 10)
+                        #endif
+                        .padding(.horizontal, 32)
                     }
 
+                    Spacer()
+                        .frame(height: 28)
+
+                    // Station name, track title, and favorite button
+                    HStack(alignment: .top) {
+                        VStack(alignment: .leading, spacing: 4) {
+                            Text(station.name.trimmingCharacters(in: .whitespacesAndNewlines))
+                                .font(.title2)
+                                .fontWeight(.bold)
+                                .foregroundStyle(.white)
+                                .lineLimit(2)
+                                #if !SKIP
+                                .textSelection(.enabled)
+                                #endif
+
+                            if let trackTitle = viewModel.curentTrackTitle?.trimmingCharacters(in: .whitespacesAndNewlines), !trackTitle.isEmpty {
+                                Text(trackTitle)
+                                    .font(.title3)
+                                    .foregroundStyle(Color.gray)
+                                    .lineLimit(2)
+                                    #if !SKIP
+                                    .textSelection(.enabled)
+                                    #endif
+                            }
+                        }
+
+                        Spacer()
+
+                        Button {
+                            toggleFavorite(station: station)
+                        } label: {
+                            Image(isCurrentStationFavorite ? "star_star_fill1_symbol" : "star_star_symbol", bundle: .module, label: Text("Toggle Favorite"))
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 28, height: 28)
+                                .foregroundStyle(isCurrentStationFavorite ? Color.yellow : Color.gray)
+                        }
+                        .padding(.top, 4)
+                    }
+                    .padding(.horizontal, 32)
+
+                    // LIVE indicator
+                    HStack(spacing: 6) {
+                        Circle()
+                            .fill(Color.red)
+                            .frame(width: 8, height: 8)
+                        Text("LIVE")
+                            .font(.caption)
+                            .fontWeight(.semibold)
+                            .foregroundStyle(Color.gray)
+                    }
+                    .frame(maxWidth: .infinity, alignment: .leading)
+                    .padding(.horizontal, 32)
+                    .padding(.top, 12)
+
+                    Spacer()
+
+                    // Playback controls
+                    HStack(spacing: 48) {
+                        Button {
+                            viewModel.previousItem()
+                        } label: {
+                            Image("skip_previous_skip_previous_fill1_symbol", bundle: .module, label: Text("Skip to the previous station"))
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 32, height: 32)
+                                .foregroundStyle(.white)
+                        }
+
+                        PlayPauseButton()
+
+                        Button {
+                            viewModel.nextItem()
+                        } label: {
+                            Image("skip_next_skip_next_fill1_symbol", bundle: .module, label: Text("Skip to the next station"))
+                                .resizable()
+                                .aspectRatio(contentMode: .fit)
+                                .frame(width: 32, height: 32)
+                                .foregroundStyle(.white)
+                        }
+                    }
+
+                    Spacer()
+                        .frame(maxHeight: 80)
                 }
-
-                Spacer()
-
-                Text(station.name.trimmingCharacters(in: .whitespacesAndNewlines))
-                    .multilineTextAlignment(.center)
-                    #if !SKIP
-                    .textSelection(.enabled)
-                    #endif
-                    .font(.title)
-                    .lineLimit(3)
-                    .padding()
-
-                HStack {
-                    Spacer()
-                    Button {
-                        self.viewModel.previousItem()
-                    } label: {
-                        Image("skip_previous_skip_previous_fill1_symbol", bundle: .module, label: Text("Skip to the previous station"))
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 40, height: 40)
-                    }
-
-                    Spacer()
-
-                    PlayPauseButton()
-
-                    Spacer()
-
-                    Button {
-                        self.viewModel.nextItem()
-                    } label: {
-                        Image("skip_next_skip_next_fill1_symbol", bundle: .module, label: Text("Skip to the next station"))
-                            .resizable()
-                            .aspectRatio(contentMode: .fit)
-                            .frame(width: 40, height: 40)
-                    }
-
-                    Spacer()
-                }
-
-                /* do we want a volume slider?
-                Slider(value: $volume, in: 0.0...1.0)
-                    .padding()
-                    .accessibilityLabel(Text("Volume"))
-                    .onAppear {
-                        self.volume = Double(viewModel.player.volume)
-                    }
-                    .onChange(of: volume) {
-                        viewModel.player.volume = Float(volume)
-                    }
-                 */
-
-                Text(viewModel.curentTrackTitle?.trimmingCharacters(in: .whitespacesAndNewlines) ?? "")
-                    .multilineTextAlignment(.center)
-                    #if !SKIP
-                    .textSelection(.enabled)
-                    #endif
-                    .font(.title2)
-                    .lineLimit(5)
-                    .frame(minHeight: 100, alignment: .top)
-                    .padding()
-
-                Spacer()
             } else {
-                Text("No Station Selected")
-                    .font(.title)
+                VStack(spacing: 16) {
+                    Image(systemName: "music.note")
+                        .foregroundStyle(Color.gray.opacity(0.4))
+                        .font(.largeTitle)
+                    Text("No Station Selected")
+                        .font(.title2)
+                        .foregroundStyle(Color.gray)
+                }
+            }
+        }
+    }
+
+    func toggleFavorite(station: StoredStationInfo) {
+        let favorites = viewModel.favoritesCollection
+        if isCurrentStationFavorite {
+            viewModel.withDatabase("remove from favorites") { db in
+                try db.removeStation(station, fromCollection: favorites)
+            }
+        } else {
+            do {
+                try viewModel.addStation(station, to: favorites)
+            } catch {
+                logger.error("error adding station to favorites: \(error)")
             }
         }
     }
@@ -282,7 +356,8 @@ struct PlayPauseButton : View {
                 Image("pause_pause_fill1_symbol", bundle: .module, label: Text("Pause the current station"))
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 40, height: 40)
+                    .frame(width: 56, height: 56)
+                    .foregroundStyle(.white)
             }
         } else {
             Button {
@@ -291,7 +366,8 @@ struct PlayPauseButton : View {
                 Image("play_arrow_play_arrow_fill1_symbol", bundle: .module, label: Text("Play the current station"))
                     .resizable()
                     .aspectRatio(contentMode: .fit)
-                    .frame(width: 40, height: 40)
+                    .frame(width: 56, height: 56)
+                    .foregroundStyle(.white)
             }
         }
     }
