@@ -3,12 +3,13 @@
 	archiveVersion = 1;
 	classes = {
 	};
-	objectVersion = 74;
+	objectVersion = 70;
 	objects = {
 
 /* Begin PBXBuildFile section */
 		491F27822DA55B72004926EE /* TuneOut in Frameworks */ = {isa = PBXBuildFile; productRef = 491F27812DA55B72004926EE /* TuneOut */; };
 		491F27832DA55B72004926EE /* TuneOut in Embed Frameworks */ = {isa = PBXBuildFile; productRef = 491F27812DA55B72004926EE /* TuneOut */; settings = {ATTRIBUTES = (CodeSignOnCopy, ); }; };
+		4962FA322F48B84B008301C2 /* Localizable.xcstrings in Resources */ = {isa = PBXBuildFile; fileRef = 4962FA312F48B84A008301C2 /* Localizable.xcstrings */; };
 		499CD43B2AC5B799001AE8D8 /* Main.swift in Sources */ = {isa = PBXBuildFile; fileRef = 49F90C2B2A52156200F06D93 /* Main.swift */; };
 		49E1C7FC2EE0EFF4008CA4A4 /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 49F90C2F2A52156300F06D93 /* Assets.xcassets */; };
 /* End PBXBuildFile section */
@@ -30,6 +31,7 @@
 /* Begin PBXFileReference section */
 		4900101C2BACEA710000DE33 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist; path = Info.plist; sourceTree = "<group>"; };
 		493609562A6B7EAE00C401E2 /* TuneOut */ = {isa = PBXFileReference; lastKnownFileType = wrapper; name = TuneOut; path = ..; sourceTree = "<group>"; };
+		4962FA312F48B84A008301C2 /* Localizable.xcstrings */ = {isa = PBXFileReference; lastKnownFileType = text.json.xcstrings; name = Localizable.xcstrings; path = ../Sources/TuneOut/Resources/Localizable.xcstrings; sourceTree = "<group>"; };
 		496BDBEB2B89A47800C09264 /* TuneOut.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = TuneOut.app; sourceTree = BUILT_PRODUCTS_DIR; };
 		496EB72F2A6AE4DE00C1253A /* Skip.env */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; name = Skip.env; path = ../Skip.env; sourceTree = "<group>"; };
 		496EB72F2A6AE4DE00C1253B /* TuneOut.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = TuneOut.xcconfig; sourceTree = "<group>"; };
@@ -40,18 +42,8 @@
 		49F90C312A52156300F06D93 /* Entitlements.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.entitlements; path = Entitlements.plist; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
-/* Begin PBXFileSystemSynchronizedBuildFileExceptionSet section */
-		49E1C7FA2EE0EA0B008CA4A4 /* PBXFileSystemSynchronizedBuildFileExceptionSet */ = {
-			isa = PBXFileSystemSynchronizedBuildFileExceptionSet;
-			membershipExceptions = (
-				/Localized/Localizable.strings,
-			);
-			target = 499CD4382AC5B799001AE8D8 /* TuneOut App */;
-		};
-/* End PBXFileSystemSynchronizedBuildFileExceptionSet section */
-
 /* Begin PBXFileSystemSynchronizedRootGroup section */
-		49E1C7EA2EE0E9F5008CA4A4 /* Resources */ = {isa = PBXFileSystemSynchronizedRootGroup; exceptions = (49E1C7FA2EE0EA0B008CA4A4 /* PBXFileSystemSynchronizedBuildFileExceptionSet */, ); explicitFileTypes = {}; explicitFolders = (); name = Resources; path = ../Sources/TuneOut/Resources; sourceTree = "<group>"; };
+		49E1C7EA2EE0E9F5008CA4A4 /* Resources */ = {isa = PBXFileSystemSynchronizedRootGroup; explicitFileTypes = {}; explicitFolders = (); name = Resources; path = ../Sources/TuneOut/Resources; sourceTree = "<group>"; };
 /* End PBXFileSystemSynchronizedRootGroup section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -103,6 +95,7 @@
 				49F90C2F2A52156300F06D93 /* Assets.xcassets */,
 				49F90C312A52156300F06D93 /* Entitlements.plist */,
 				4900101C2BACEA710000DE33 /* Info.plist */,
+				4962FA312F48B84A008301C2 /* Localizable.xcstrings */,
 			);
 			name = App;
 			sourceTree = "<group>";
@@ -143,6 +136,7 @@
 				LastUpgradeCheck = 1630;
 			};
 			buildConfigurationList = 49F90C232A52156200F06D93 /* Build configuration list for PBXProject "TuneOut" */;
+			compatibilityVersion = "Xcode 14.0";
 			developmentRegion = en;
 			hasScannedForEncodings = 0;
 			knownRegions = (
@@ -156,7 +150,6 @@
 			mainGroup = 49F90C1F2A52156200F06D93;
 			packageReferences = (
 			);
-			preferredProjectObjectVersion = 56;
 			productRefGroup = 496BDBEC2B89A47800C09264 /* Products */;
 			projectDirPath = "";
 			projectRoot = "";
@@ -172,6 +165,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				49E1C7FC2EE0EFF4008CA4A4 /* Assets.xcassets in Resources */,
+				4962FA322F48B84B008301C2 /* Localizable.xcstrings in Resources */,
 			);
 			runOnlyForDeploymentPostprocessing = 0;
 		};
