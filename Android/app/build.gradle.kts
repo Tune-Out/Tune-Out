@@ -58,7 +58,7 @@ android {
     }
 
     // default signing configuration tries to load from keystore.properties
-    // see: https://skip.tools/docs/deployment/#export-signing
+    // see: https://skip.dev/docs/deployment/#export-signing
     signingConfigs {
         val keystorePropertiesFile = file("keystore.properties")
         create("release") {
