@@ -55,6 +55,12 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
     public var curentTrackTitle: String? = nil
     public var currentTrackArtwork: URL? = nil
 
+    /// The collection from which the current station is being played, or nil for recently played
+    public var playbackCollection: StationCollection? = nil
+
+    /// Snapshotted list of stations for next/previous navigation
+    public var playbackStationList: [StoredStationInfo] = []
+
     internal let db = try! DatabaseManager(url: databaseFolder.appendingPathComponent("tuneout.sqlite"))
     /// Any changes to the database will incremenet this counter via the update hook;
     /// We use this for views to re-execute any queries performed in a `withDatabase` block.
@@ -185,7 +191,43 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
         self.playerState == .playing && nowPlaying?.stationuuid == station.stationuuid
     }
 
-    public func play(_ station: StationInfo? = nil) {
+    /// The effective list of stations for next/previous navigation.
+    /// Uses the snapshotted list if available, otherwise fetches from the effective collection.
+    private var effectivePlaybackStations: [StoredStationInfo] {
+        if !playbackStationList.isEmpty { return playbackStationList }
+        let collection = playbackCollection ?? recentsCollection
+        return withDatabase("playback stations") { db in
+            try db.fetchStations(inCollection: collection).map(\.0)
+        } ?? []
+    }
+
+    /// Index of the currently playing station in the playback list
+    private var currentStationIndex: Int? {
+        guard let current = nowPlaying else { return nil }
+        return effectivePlaybackStations.firstIndex(where: { $0.stationuuid == current.stationuuid })
+    }
+
+    /// Whether there is a next station available in the current playback collection
+    public var canGoNext: Bool {
+        guard let index = currentStationIndex else { return false }
+        return index + 1 < effectivePlaybackStations.count
+    }
+
+    /// Whether there is a previous station available in the current playback collection
+    public var canGoPrevious: Bool {
+        guard let index = currentStationIndex else { return false }
+        return index > 0
+    }
+
+    public func play(_ station: StationInfo? = nil, fromCollection collection: StationCollection? = nil) {
+        if station != nil {
+            self.playbackCollection = collection
+            // Snapshot the station list so next/prev isn't affected by recents reordering
+            let effectiveCollection = collection ?? recentsCollection
+            self.playbackStationList = withDatabase("snapshot playback stations") { db in
+                try db.fetchStations(inCollection: effectiveCollection).map(\.0)
+            } ?? []
+        }
         playerController.play(station)
     }
 
@@ -194,11 +236,21 @@ let appVersion = Bundle.main.infoDictionary?["CFBundleShortVersionString"] as? S
     }
 
     @discardableResult public func nextItem() -> Bool {
-        playerController.nextItem()
+        let stations = effectivePlaybackStations
+        guard let current = nowPlaying,
+              let index = stations.firstIndex(where: { $0.stationuuid == current.stationuuid }),
+              index + 1 < stations.count else { return false }
+        playerController.play(stations[index + 1])
+        return true
     }
 
     @discardableResult public func previousItem() -> Bool {
-        playerController.previousItem()
+        let stations = effectivePlaybackStations
+        guard let current = nowPlaying,
+              let index = stations.firstIndex(where: { $0.stationuuid == current.stationuuid }),
+              index > 0 else { return false }
+        playerController.play(stations[index - 1])
+        return true
     }
 }
 

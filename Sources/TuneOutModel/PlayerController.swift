@@ -66,9 +66,8 @@ import androidx.media3.session.MediaSessionService
         #if canImport(MediaPlayer)
         MPRemoteCommandCenter.shared().playCommand.isEnabled = true
         MPRemoteCommandCenter.shared().pauseCommand.isEnabled = true
-        // TODO: enable/disable next track based on whether the current collection has multiple entries
-        MPRemoteCommandCenter.shared().nextTrackCommand.isEnabled = true
-        MPRemoteCommandCenter.shared().previousTrackCommand.isEnabled = true
+        MPRemoteCommandCenter.shared().nextTrackCommand.isEnabled = viewModel.canGoNext
+        MPRemoteCommandCenter.shared().previousTrackCommand.isEnabled = viewModel.canGoPrevious
         #endif
     }
 
@@ -201,15 +200,16 @@ import androidx.media3.session.MediaSessionService
 
     @discardableResult public func nextItem() -> Bool {
         logger.info("nextItem")
-        //self.player.advanceToNextItem()
+        let result = viewModel.nextItem()
         updateRemoteCommands()
-        return false // TODO
+        return result
     }
 
     @discardableResult public func previousItem() -> Bool {
         logger.info("previousItem")
+        let result = viewModel.previousItem()
         updateRemoteCommands()
-        return false // TODO
+        return result
     }
 
     func updateCurrentTrack(title: String?) {

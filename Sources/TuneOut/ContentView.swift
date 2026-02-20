@@ -297,8 +297,9 @@ struct MusicPlayerView: View {
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 32, height: 32)
-                                .foregroundStyle(.white)
+                                .foregroundStyle(viewModel.canGoPrevious ? .white : Color.gray.opacity(0.3))
                         }
+                        .disabled(!viewModel.canGoPrevious)
 
                         PlayPauseButton()
 
@@ -309,8 +310,9 @@ struct MusicPlayerView: View {
                                 .resizable()
                                 .aspectRatio(contentMode: .fit)
                                 .frame(width: 32, height: 32)
-                                .foregroundStyle(.white)
+                                .foregroundStyle(viewModel.canGoNext ? .white : Color.gray.opacity(0.3))
                         }
+                        .disabled(!viewModel.canGoNext)
                     }
 
                     Spacer()
@@ -942,6 +944,16 @@ struct StationInfoView: View {
     @State var addCollectionActive = false // whether we are showing the dialog for adding a new collection
     @FocusState var addCollectionNameFocused: Bool
 
+    /// Detect if this station was navigated to from within a collection
+    var sourceCollection: StationCollection? {
+        for path in viewModel.collectionsNavigationPath {
+            if case .stationCollection(let collection) = path {
+                return collection
+            }
+        }
+        return nil
+    }
+
     var body: some View {
         Form {
             StationInfoFormView(title: LocalizedStringResource("Station Name"), value: station.name)
@@ -1006,7 +1018,7 @@ struct StationInfoView: View {
                     }
                 } else {
                     Button {
-                        viewModel.play(station)
+                        viewModel.play(station, fromCollection: sourceCollection)
                         viewModel.tab = .nowPlaying // switch to the now playing tab when we start playing
                     } label: {
                         Image("play_arrow_play_arrow_fill1_symbol", bundle: .module, label: Text("Play"))
