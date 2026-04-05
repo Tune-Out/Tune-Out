@@ -274,54 +274,6 @@ import android.net.Uri
         #endif
     }
 
-    fileprivate func pushGroups(_ groups: [AVTimedMetadataGroup]) {
-        for group in groups {
-            for item in group.items {
-                if let key = item.key {
-                    logger.log("item key: \(key.description) common: \(item.commonKey?.rawValue ?? "none")")
-                    // FIXME: some streams encode a bunch of information in the title, like:
-                    // "<AVMutableMetadataItem: 0x600000302560, identifier=icy/StreamTitle, keySpace=icy, key class = __NSCFConstantString, key=StreamTitle, commonKey=title, extendedLanguageTag=(null), dataType=(null), time={1341376/24000 = 55.891}, duration={1/24000 = 0.000}, startDate=(null), extras={\n}, value class=__NSCFString, value=Georgia Brown - text=\"As Long As He Needs Me\" song_spot=\"M\" spotInstanceId=\"-1\" length=\"00:04:07\" MediaBaseId=\"\" TAID=\"0\" TPID=\"648410\" cartcutId=\"422206\" amgArtworkURL=\"https://i.iheart.com/v3/catalog/track/648410?ops=fit(400,400),format(%22png%22)\" spEventID=\"59365933-b66b-f011-836a-0242c86e7629\" >"
-                    
-                    if item.commonKey?.rawValue == "title" { // key names are like StreamTitle and StreamUrl
-                        nonisolated(unsafe) let groupItem = item
-                        Task { @MainActor  in
-                            let title = try await groupItem.getStringValue()
-                            logger.log("track title: \(title ?? "")")
-                            self.updateCurrentTrack(title: title)
-                        }
-                    }
-                    
-                    // artwork can come in like:
-                    // "<AVMutableMetadataItem: 0x60000022cfa0, identifier=icy/StreamUrl, keySpace=icy, key class = __NSCFConstantString, key=StreamUrl, commonKey=(null), extendedLanguageTag=(null), dataType=(null), time={15296/44100 = 0.347}, duration={1/44100 = 0.000}, startDate=(null), extras={\n}, value class=__NSCFString, value=http://img.radioparadise.com/covers/l/18541_48f6fcd3-566e-4124-aaa8-f7e7db864f62.jpg>"
-                    // "<AVMutableMetadataItem: 0x60000022eca0, identifier=icy/StreamUrl, keySpace=icy, key class = __NSCFConstantString, key=StreamUrl, commonKey=(null), extendedLanguageTag=(null), dataType=(null), time={123264/44100 = 2.795}, duration={1/44100 = 0.000}, startDate=(null), extras={\n}, value class=__NSCFString, value=https://somafm.com/logos/512/groovesalad512.png>"
-                    //
-                    // but other "StreamUrl" metadata isn't necessarily a URL to artwork, like:
-                    //
-                    // "<AVMutableMetadataItem: 0x60000022ccc0, identifier=icy/StreamUrl, keySpace=icy, key class = __NSCFConstantString, key=StreamUrl, commonKey=(null), extendedLanguageTag=(null), dataType=(null), time={2304/44100 = 0.052}, duration={1/44100 = 0.000}, startDate=(null), extras={\n}, value class=__NSCFString, value=MM-CLA-112563.mp3>"
-                    // "<AVMutableMetadataItem: 0x600000331fc0, identifier=icy/StreamUrl, keySpace=icy, key class = __NSCFConstantString, key=StreamUrl, commonKey=(null), extendedLanguageTag=(null), dataType=(null), time={43776/44100 = 0.993}, duration={1/44100 = 0.000}, startDate=(null), extras={\n}, value class=__NSCFString, value=http://www.miamibeachradio.com>"
-                    //
-                    // also artwork can come in like:
-                    // "<AVMutableMetadataItem: 0x600000322a60, identifier=id3/TXXX, keySpace=org.id3, key class = NSTaggedPointerString, key=TXXX, commonKey=(null), extendedLanguageTag=(null), dataType=(null), time={32316480/360000 = 89.768}, duration={1/360000 = 0.000}, startDate=(null), extras={\n    info = URL;\n}, value class=__NSCFString, value=song_spot=\"M\" spotInstanceId=\"-1\" length=\"00:01:44\" MediaBaseId=\"1181648\" TAID=\"0\" TPID=\"82989618\" cartcutId=\"735438\" amgArtworkURL=\"http://image.iheart.com/SBMG2/Thumb_Content/Full_PC/SBMG/Dec09/121509/batch4/1919137/000/000/000/000/026/468/71/00000000000002646871-480x480_72dpi_RGB_100Q.jpg\" spEventID=\"a29b708c-2478-f011-836a-0242c86e7629\" >"
-                    if item.key?.description == "StreamUrl" {
-                        nonisolated(unsafe) let streamItem = item
-                        Task { @MainActor  in
-                            let streamUrl = try await streamItem.getStringValue()
-                            logger.log("track streamUrl: \(streamUrl ?? "")")
-                            // e.g.: http://img.radioparadise.com/covers/l/18951_f4537ecb-b795-45d4-ac6e-fb6dba939c12.jpg
-                            if let streamUrl,
-                               (streamUrl.hasPrefix("http://") || streamUrl.hasPrefix("https://")),
-                               (streamUrl.hasSuffix("png") || streamUrl.hasSuffix("gif") || streamUrl.hasSuffix("jpg") || streamUrl.hasSuffix("jpeg")),
-                               let artworkURL = URL(string: streamUrl) {
-                                // looks like artwork URL: update the currently playing URL
-                                self.viewModel.currentTrackArtwork = artworkURL
-                            }
-                        }
-                    }
-                }
-            }
-        }
-    }
-    
     /// Platform-specific implementation to set up a listener for media metadata changes (e.g., changes in the current track title) in the player for the specific item.
     private func configurePlayerListener(for item: AVPlayerItem) {
         #if SKIP
@@ -357,7 +309,51 @@ import android.net.Uri
         #else
         // …whereas the listener for an AVPlayer is defined on a per-AVPlayerItem basis
         let listener = OutputPushDelegate { groups in
-            self.pushGroups(groups)
+            for group in groups {
+                for item in group.items {
+                    if let key = item.key {
+                        logger.log("item key: \(key.description) common: \(item.commonKey?.rawValue ?? "none")")
+                        // FIXME: some streams encode a bunch of information in the title, like:
+                        // "<AVMutableMetadataItem: 0x600000302560, identifier=icy/StreamTitle, keySpace=icy, key class = __NSCFConstantString, key=StreamTitle, commonKey=title, extendedLanguageTag=(null), dataType=(null), time={1341376/24000 = 55.891}, duration={1/24000 = 0.000}, startDate=(null), extras={\n}, value class=__NSCFString, value=Georgia Brown - text=\"As Long As He Needs Me\" song_spot=\"M\" spotInstanceId=\"-1\" length=\"00:04:07\" MediaBaseId=\"\" TAID=\"0\" TPID=\"648410\" cartcutId=\"422206\" amgArtworkURL=\"https://i.iheart.com/v3/catalog/track/648410?ops=fit(400,400),format(%22png%22)\" spEventID=\"59365933-b66b-f011-836a-0242c86e7629\" >"
+
+                        if item.commonKey?.rawValue == "title" { // key names are like StreamTitle and StreamUrl
+                            nonisolated(unsafe) let groupItem = item
+                            Task { @MainActor  in
+                                let title = try await groupItem.getStringValue()
+                                logger.log("track title: \(title ?? "")")
+                                self.updateCurrentTrack(title: title)
+                            }
+                        }
+
+                        // artwork can come in like:
+                        // "<AVMutableMetadataItem: 0x60000022cfa0, identifier=icy/StreamUrl, keySpace=icy, key class = __NSCFConstantString, key=StreamUrl, commonKey=(null), extendedLanguageTag=(null), dataType=(null), time={15296/44100 = 0.347}, duration={1/44100 = 0.000}, startDate=(null), extras={\n}, value class=__NSCFString, value=http://img.radioparadise.com/covers/l/18541_48f6fcd3-566e-4124-aaa8-f7e7db864f62.jpg>"
+                        // "<AVMutableMetadataItem: 0x60000022eca0, identifier=icy/StreamUrl, keySpace=icy, key class = __NSCFConstantString, key=StreamUrl, commonKey=(null), extendedLanguageTag=(null), dataType=(null), time={123264/44100 = 2.795}, duration={1/44100 = 0.000}, startDate=(null), extras={\n}, value class=__NSCFString, value=https://somafm.com/logos/512/groovesalad512.png>"
+                        //
+                        // but other "StreamUrl" metadata isn't necessarily a URL to artwork, like:
+                        //
+                        // "<AVMutableMetadataItem: 0x60000022ccc0, identifier=icy/StreamUrl, keySpace=icy, key class = __NSCFConstantString, key=StreamUrl, commonKey=(null), extendedLanguageTag=(null), dataType=(null), time={2304/44100 = 0.052}, duration={1/44100 = 0.000}, startDate=(null), extras={\n}, value class=__NSCFString, value=MM-CLA-112563.mp3>"
+                        // "<AVMutableMetadataItem: 0x600000331fc0, identifier=icy/StreamUrl, keySpace=icy, key class = __NSCFConstantString, key=StreamUrl, commonKey=(null), extendedLanguageTag=(null), dataType=(null), time={43776/44100 = 0.993}, duration={1/44100 = 0.000}, startDate=(null), extras={\n}, value class=__NSCFString, value=http://www.miamibeachradio.com>"
+                        //
+                        // also artwork can come in like:
+                        // "<AVMutableMetadataItem: 0x600000322a60, identifier=id3/TXXX, keySpace=org.id3, key class = NSTaggedPointerString, key=TXXX, commonKey=(null), extendedLanguageTag=(null), dataType=(null), time={32316480/360000 = 89.768}, duration={1/360000 = 0.000}, startDate=(null), extras={\n    info = URL;\n}, value class=__NSCFString, value=song_spot=\"M\" spotInstanceId=\"-1\" length=\"00:01:44\" MediaBaseId=\"1181648\" TAID=\"0\" TPID=\"82989618\" cartcutId=\"735438\" amgArtworkURL=\"http://image.iheart.com/SBMG2/Thumb_Content/Full_PC/SBMG/Dec09/121509/batch4/1919137/000/000/000/000/026/468/71/00000000000002646871-480x480_72dpi_RGB_100Q.jpg\" spEventID=\"a29b708c-2478-f011-836a-0242c86e7629\" >"
+                        if item.key?.description == "StreamUrl" {
+                            nonisolated(unsafe) let streamItem = item
+                            Task { @MainActor  in
+                                let streamUrl = try await streamItem.getStringValue()
+                                logger.log("track streamUrl: \(streamUrl ?? "")")
+                                // e.g.: http://img.radioparadise.com/covers/l/18951_f4537ecb-b795-45d4-ac6e-fb6dba939c12.jpg
+                                if let streamUrl,
+                                   (streamUrl.hasPrefix("http://") || streamUrl.hasPrefix("https://")),
+                                   (streamUrl.hasSuffix("png") || streamUrl.hasSuffix("gif") || streamUrl.hasSuffix("jpg") || streamUrl.hasSuffix("jpeg")),
+                                   let artworkURL = URL(string: streamUrl) {
+                                    // looks like artwork URL: update the currently playing URL
+                                    self.viewModel.currentTrackArtwork = artworkURL
+                                }
+                            }
+                        }
+                    }
+                }
+            }
         }
         self.outputPushDelegate = listener // need to retain the listener or it will be cleared
         let output = AVPlayerItemMetadataOutput()
