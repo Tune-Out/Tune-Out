@@ -7,6 +7,8 @@
 # macOS
 .DS_Store
 
+misc/
+
 # gradle properties
 local.properties
 .gradle/

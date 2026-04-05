@@ -164,14 +164,29 @@ import android.net.Uri
 
     @MainActor public func play(_ station: StationInfo? = nil) {
         guard let station = station ?? viewModel.nowPlaying else {
-            logger.warning("no current station")
+            logger.warning(“no current station”)
             return
         }
 
-        logger.info("play: \(station.url)")
+        // If resuming the same station that is currently paused, just call play()
+        // on the existing player without creating a new AVPlayerItem.
+        // Creating a new item while the old one is still buffering can cause
+        // the stream to play twice simultaneously on iOS.
+        if station.url == viewModel.nowPlaying?.url && viewModel.playerState == .paused && self.player.currentItem != nil {
+            logger.info(“resuming paused stream: \(station.url)”)
+            self.player.play()
+            viewModel.playerState = .playing
+            updateRemoteCommands()
+            return
+        }
+
+        logger.info(“play: \(station.url)”)
+
+        // Stop any existing playback before starting a new stream
+        self.player.pause()
 
         guard let url = URL(string: station.url) else {
-            logger.error("cannot parse station url: \(station.url)")
+            logger.error(“cannot parse station url: \(station.url)”)
             return
         }
 
@@ -191,7 +206,7 @@ import android.net.Uri
         viewModel.playerState = .playing
         updateRemoteCommands()
         #if !os(Android)
-        self.updateCurrentTrack(title: nil) // clear the current title until it comes up again; disabled because Android's MediaPlayer doesn't re-update this when you pause then play the same station again
+        self.updateCurrentTrack(title: nil) // clear the current title until it comes up again; disabled because Android’s MediaPlayer doesn’t re-update this when you pause then play the same station again
         #endif
     }
 
