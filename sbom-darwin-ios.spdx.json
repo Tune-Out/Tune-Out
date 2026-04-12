@@ -1,0 +1,320 @@
+{
+  "creationInfo" : {
+    "created" : "2026-04-12T15:52:44Z",
+    "creators" : [
+      "Tool: skip-sbom"
+    ],
+    "licenseListVersion" : "3.22"
+  },
+  "dataLicense" : "CC0-1.0",
+  "documentNamespace" : "https://skip.dev/spdx/tune-out/ios",
+  "name" : "tune-out-ios",
+  "packages" : [
+    {
+      "downloadLocation" : "NOASSERTION",
+      "filesAnalyzed" : false,
+      "name" : "tune-out",
+      "primaryPackagePurpose" : "APPLICATION",
+      "SPDXID" : "SPDXRef-Package-tune-out",
+      "supplier" : "NOASSERTION",
+      "versionInfo" : "source"
+    },
+    {
+      "copyrightText" : "NOASSERTION",
+      "downloadLocation" : "https://github.com/appfair/appfair-app.git",
+      "externalRefs" : [
+        {
+          "referenceCategory" : "PACKAGE-MANAGER",
+          "referenceLocator" : "https://github.com/appfair/appfair-app.git",
+          "referenceType" : "swiftpm"
+        }
+      ],
+      "filesAnalyzed" : false,
+      "licenseConcluded" : "GPL-2.0-only",
+      "licenseDeclared" : "GPL-2.0-only",
+      "name" : "appfair-app",
+      "primaryPackagePurpose" : "LIBRARY",
+      "SPDXID" : "SPDXRef-Package-appfair-app",
+      "supplier" : "NOASSERTION",
+      "versionInfo" : "1.0.4"
+    },
+    {
+      "copyrightText" : "NOASSERTION",
+      "downloadLocation" : "https://source.skip.tools/skip.git",
+      "externalRefs" : [
+        {
+          "referenceCategory" : "PACKAGE-MANAGER",
+          "referenceLocator" : "https://source.skip.tools/skip.git",
+          "referenceType" : "swiftpm"
+        }
+      ],
+      "filesAnalyzed" : false,
+      "licenseConcluded" : "MPL-2.0",
+      "licenseDeclared" : "MPL-2.0",
+      "name" : "skip",
+      "primaryPackagePurpose" : "LIBRARY",
+      "SPDXID" : "SPDXRef-Package-skip",
+      "supplier" : "NOASSERTION",
+      "versionInfo" : "1.8.6"
+    },
+    {
+      "copyrightText" : "NOASSERTION",
+      "downloadLocation" : "https://source.skip.tools/skip-av.git",
+      "externalRefs" : [
+        {
+          "referenceCategory" : "PACKAGE-MANAGER",
+          "referenceLocator" : "https://source.skip.tools/skip-av.git",
+          "referenceType" : "swiftpm"
+        }
+      ],
+      "filesAnalyzed" : false,
+      "licenseConcluded" : "MPL-2.0",
+      "licenseDeclared" : "MPL-2.0",
+      "name" : "skip-av",
+      "primaryPackagePurpose" : "LIBRARY",
+      "SPDXID" : "SPDXRef-Package-skip-av",
+      "supplier" : "NOASSERTION",
+      "versionInfo" : "0.7.0"
+    },
+    {
+      "copyrightText" : "NOASSERTION",
+      "downloadLocation" : "https://source.skip.tools/skip-ffi.git",
+      "externalRefs" : [
+        {
+          "referenceCategory" : "PACKAGE-MANAGER",
+          "referenceLocator" : "https://source.skip.tools/skip-ffi.git",
+          "referenceType" : "swiftpm"
+        }
+      ],
+      "filesAnalyzed" : false,
+      "licenseConcluded" : "LGPL-3.0-only WITH LGPL-3.0-linking-exception",
+      "licenseDeclared" : "LGPL-3.0-only WITH LGPL-3.0-linking-exception",
+      "name" : "skip-ffi",
+      "primaryPackagePurpose" : "LIBRARY",
+      "SPDXID" : "SPDXRef-Package-skip-ffi",
+      "supplier" : "NOASSERTION",
+      "versionInfo" : "1.2.0"
+    },
+    {
+      "copyrightText" : "NOASSERTION",
+      "downloadLocation" : "https://source.skip.tools/skip-foundation.git",
+      "externalRefs" : [
+        {
+          "referenceCategory" : "PACKAGE-MANAGER",
+          "referenceLocator" : "https://source.skip.tools/skip-foundation.git",
+          "referenceType" : "swiftpm"
+        }
+      ],
+      "filesAnalyzed" : false,
+      "licenseConcluded" : "LGPL-3.0-only WITH LGPL-3.0-linking-exception",
+      "licenseDeclared" : "LGPL-3.0-only WITH LGPL-3.0-linking-exception",
+      "name" : "skip-foundation",
+      "primaryPackagePurpose" : "LIBRARY",
+      "SPDXID" : "SPDXRef-Package-skip-foundation",
+      "supplier" : "NOASSERTION",
+      "versionInfo" : "1.3.16"
+    },
+    {
+      "copyrightText" : "NOASSERTION",
+      "downloadLocation" : "https://source.skip.tools/skip-kit.git",
+      "externalRefs" : [
+        {
+          "referenceCategory" : "PACKAGE-MANAGER",
+          "referenceLocator" : "https://source.skip.tools/skip-kit.git",
+          "referenceType" : "swiftpm"
+        }
+      ],
+      "filesAnalyzed" : false,
+      "licenseConcluded" : "MPL-2.0",
+      "licenseDeclared" : "MPL-2.0",
+      "name" : "skip-kit",
+      "primaryPackagePurpose" : "LIBRARY",
+      "SPDXID" : "SPDXRef-Package-skip-kit",
+      "supplier" : "NOASSERTION",
+      "versionInfo" : "1.0.3"
+    },
+    {
+      "copyrightText" : "NOASSERTION",
+      "downloadLocation" : "https://source.skip.tools/skip-lib.git",
+      "externalRefs" : [
+        {
+          "referenceCategory" : "PACKAGE-MANAGER",
+          "referenceLocator" : "https://source.skip.tools/skip-lib.git",
+          "referenceType" : "swiftpm"
+        }
+      ],
+      "filesAnalyzed" : false,
+      "licenseConcluded" : "LGPL-3.0-only WITH LGPL-3.0-linking-exception",
+      "licenseDeclared" : "LGPL-3.0-only WITH LGPL-3.0-linking-exception",
+      "name" : "skip-lib",
+      "primaryPackagePurpose" : "LIBRARY",
+      "SPDXID" : "SPDXRef-Package-skip-lib",
+      "supplier" : "NOASSERTION",
+      "versionInfo" : "1.3.9"
+    },
+    {
+      "copyrightText" : "NOASSERTION",
+      "downloadLocation" : "https://source.skip.tools/skip-marketplace.git",
+      "externalRefs" : [
+        {
+          "referenceCategory" : "PACKAGE-MANAGER",
+          "referenceLocator" : "https://source.skip.tools/skip-marketplace.git",
+          "referenceType" : "swiftpm"
+        }
+      ],
+      "filesAnalyzed" : false,
+      "licenseConcluded" : "MPL-2.0",
+      "licenseDeclared" : "MPL-2.0",
+      "name" : "skip-marketplace",
+      "primaryPackagePurpose" : "LIBRARY",
+      "SPDXID" : "SPDXRef-Package-skip-marketplace",
+      "supplier" : "NOASSERTION",
+      "versionInfo" : "0.3.0"
+    },
+    {
+      "copyrightText" : "NOASSERTION",
+      "downloadLocation" : "https://source.skip.tools/skip-model.git",
+      "externalRefs" : [
+        {
+          "referenceCategory" : "PACKAGE-MANAGER",
+          "referenceLocator" : "https://source.skip.tools/skip-model.git",
+          "referenceType" : "swiftpm"
+        }
+      ],
+      "filesAnalyzed" : false,
+      "licenseConcluded" : "MPL-2.0",
+      "licenseDeclared" : "MPL-2.0",
+      "name" : "skip-model",
+      "primaryPackagePurpose" : "LIBRARY",
+      "SPDXID" : "SPDXRef-Package-skip-model",
+      "supplier" : "NOASSERTION",
+      "versionInfo" : "1.7.3"
+    },
+    {
+      "copyrightText" : "NOASSERTION",
+      "downloadLocation" : "https://source.skip.tools/skip-sql.git",
+      "externalRefs" : [
+        {
+          "referenceCategory" : "PACKAGE-MANAGER",
+          "referenceLocator" : "https://source.skip.tools/skip-sql.git",
+          "referenceType" : "swiftpm"
+        }
+      ],
+      "filesAnalyzed" : false,
+      "licenseConcluded" : "LGPL-3.0-only WITH LGPL-3.0-linking-exception",
+      "licenseDeclared" : "LGPL-3.0-only WITH LGPL-3.0-linking-exception",
+      "name" : "skip-sql",
+      "primaryPackagePurpose" : "LIBRARY",
+      "SPDXID" : "SPDXRef-Package-skip-sql",
+      "supplier" : "NOASSERTION",
+      "versionInfo" : "0.16.0"
+    },
+    {
+      "copyrightText" : "NOASSERTION",
+      "downloadLocation" : "https://source.skip.tools/skip-ui.git",
+      "externalRefs" : [
+        {
+          "referenceCategory" : "PACKAGE-MANAGER",
+          "referenceLocator" : "https://source.skip.tools/skip-ui.git",
+          "referenceType" : "swiftpm"
+        }
+      ],
+      "filesAnalyzed" : false,
+      "licenseConcluded" : "MPL-2.0",
+      "licenseDeclared" : "MPL-2.0",
+      "name" : "skip-ui",
+      "primaryPackagePurpose" : "LIBRARY",
+      "SPDXID" : "SPDXRef-Package-skip-ui",
+      "supplier" : "NOASSERTION",
+      "versionInfo" : "1.51.1"
+    },
+    {
+      "copyrightText" : "NOASSERTION",
+      "downloadLocation" : "https://source.skip.tools/skip-unit.git",
+      "externalRefs" : [
+        {
+          "referenceCategory" : "PACKAGE-MANAGER",
+          "referenceLocator" : "https://source.skip.tools/skip-unit.git",
+          "referenceType" : "swiftpm"
+        }
+      ],
+      "filesAnalyzed" : false,
+      "licenseConcluded" : "MPL-2.0",
+      "licenseDeclared" : "MPL-2.0",
+      "name" : "skip-unit",
+      "primaryPackagePurpose" : "LIBRARY",
+      "SPDXID" : "SPDXRef-Package-skip-unit",
+      "supplier" : "NOASSERTION",
+      "versionInfo" : "1.6.1"
+    }
+  ],
+  "relationships" : [
+    {
+      "relatedSpdxElement" : "SPDXRef-Package-tune-out",
+      "relationshipType" : "DESCRIBES",
+      "spdxElementId" : "SPDXRef-DOCUMENT"
+    },
+    {
+      "relatedSpdxElement" : "SPDXRef-Package-appfair-app",
+      "relationshipType" : "DEPENDS_ON",
+      "spdxElementId" : "SPDXRef-Package-tune-out"
+    },
+    {
+      "relatedSpdxElement" : "SPDXRef-Package-skip",
+      "relationshipType" : "DEPENDS_ON",
+      "spdxElementId" : "SPDXRef-Package-tune-out"
+    },
+    {
+      "relatedSpdxElement" : "SPDXRef-Package-skip-av",
+      "relationshipType" : "DEPENDS_ON",
+      "spdxElementId" : "SPDXRef-Package-tune-out"
+    },
+    {
+      "relatedSpdxElement" : "SPDXRef-Package-skip-ffi",
+      "relationshipType" : "DEPENDS_ON",
+      "spdxElementId" : "SPDXRef-Package-tune-out"
+    },
+    {
+      "relatedSpdxElement" : "SPDXRef-Package-skip-foundation",
+      "relationshipType" : "DEPENDS_ON",
+      "spdxElementId" : "SPDXRef-Package-tune-out"
+    },
+    {
+      "relatedSpdxElement" : "SPDXRef-Package-skip-kit",
+      "relationshipType" : "DEPENDS_ON",
+      "spdxElementId" : "SPDXRef-Package-tune-out"
+    },
+    {
+      "relatedSpdxElement" : "SPDXRef-Package-skip-lib",
+      "relationshipType" : "DEPENDS_ON",
+      "spdxElementId" : "SPDXRef-Package-tune-out"
+    },
+    {
+      "relatedSpdxElement" : "SPDXRef-Package-skip-marketplace",
+      "relationshipType" : "DEPENDS_ON",
+      "spdxElementId" : "SPDXRef-Package-tune-out"
+    },
+    {
+      "relatedSpdxElement" : "SPDXRef-Package-skip-model",
+      "relationshipType" : "DEPENDS_ON",
+      "spdxElementId" : "SPDXRef-Package-tune-out"
+    },
+    {
+      "relatedSpdxElement" : "SPDXRef-Package-skip-sql",
+      "relationshipType" : "DEPENDS_ON",
+      "spdxElementId" : "SPDXRef-Package-tune-out"
+    },
+    {
+      "relatedSpdxElement" : "SPDXRef-Package-skip-ui",
+      "relationshipType" : "DEPENDS_ON",
+      "spdxElementId" : "SPDXRef-Package-tune-out"
+    },
+    {
+      "relatedSpdxElement" : "SPDXRef-Package-skip-unit",
+      "relationshipType" : "DEPENDS_ON",
+      "spdxElementId" : "SPDXRef-Package-tune-out"
+    }
+  ],
+  "SPDXID" : "SPDXRef-DOCUMENT",
+  "spdxVersion" : "SPDX-2.3"
+}

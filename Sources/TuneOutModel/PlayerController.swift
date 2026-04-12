@@ -41,13 +41,18 @@ import android.net.Uri
     #else
     // Strong reference to the player's push delegate, since it is stored weakly
     internal var outputPushDelegate: AVPlayerItemMetadataOutputPushDelegate? = nil
+    // KVO observation for detecting external playback state changes (e.g., phone call interruption)
+    internal var timeControlStatusObservation: NSKeyValueObservation? = nil
     #endif
     static var audioSessionActivated = false
 
+    /// Guard against re-entrant play() calls that could create duplicate streams
+    private var isSettingUpPlayback = false
 
     init(viewModel: ViewModel) {
         self.viewModel = viewModel
         setupRemoteCommands()
+        observePlaybackState()
     }
 
     /// Configure the app for playback in the background
@@ -63,6 +68,39 @@ import android.net.Uri
             logger.error("error configuring AVAudioSession: \(error)")
         }
         #endif
+        #endif
+    }
+
+    /// Observe the player's playback state so the UI stays in sync when playback
+    /// is paused or resumed externally (e.g., phone call, Siri, Control Center).
+    func observePlaybackState() {
+        #if !SKIP
+        timeControlStatusObservation = player.observe(\.timeControlStatus, options: [.new, .old]) { [weak self] player, change in
+            guard let self = self else { return }
+            let newStatus = player.timeControlStatus
+            let oldStatus = change.oldValue ?? .paused
+            guard newStatus != oldStatus else { return }
+            Task { @MainActor in
+                switch newStatus {
+                case .paused:
+                    if self.viewModel.playerState == .playing {
+                        logger.info("external pause detected")
+                        self.viewModel.playerState = .paused
+                        self.updateRemoteCommands()
+                    }
+                case .playing:
+                    if self.viewModel.playerState == .paused {
+                        logger.info("external play detected")
+                        self.viewModel.playerState = .playing
+                        self.updateRemoteCommands()
+                    }
+                case .waitingToPlayAtSpecifiedRate:
+                    break // buffering — don't change state
+                @unknown default:
+                    break
+                }
+            }
+        }
         #endif
     }
 
@@ -120,7 +158,7 @@ import android.net.Uri
             logger.log("PlayBackService: controllerFuture.addListener")
             let controller: MediaController = controllerFuture.get()
 
-            // https://developer.android.com/media/media3/session/connect-to-media-app#use-controller : “MediaController implements the Player interface, so you can use the commands defined in the interface to control playback of the connected MediaSession.”
+            // https://developer.android.com/media/media3/session/connect-to-media-app#use-controller : "MediaController implements the Player interface, so you can use the commands defined in the interface to control playback of the connected MediaSession."
             // replace the stock AVPlayer with one that wraps the controller interface to the service player
             self.player = AVPlayer(player: controller)
         }, ContextCompat.getMainExecutor(ctx))
@@ -168,6 +206,12 @@ import android.net.Uri
             return
         }
 
+        // Prevent re-entrant calls that could create duplicate streams
+        guard !isSettingUpPlayback else {
+            logger.info("play() already in progress, ignoring duplicate call")
+            return
+        }
+
         // If resuming the same station that is currently paused, just call play()
         // on the existing player without creating a new AVPlayerItem.
         // Creating a new item while the old one is still buffering can cause
@@ -181,16 +225,22 @@ import android.net.Uri
         }
 
         logger.info("play: \(station.url)")
+        isSettingUpPlayback = true
 
-        // Stop any existing playback before starting a new stream
+        // Fully tear down any existing stream before starting a new one.
+        // On iOS, just calling pause() may not immediately release the old
+        // buffering connection, which can result in two streams playing
+        // simultaneously when the new item starts.
         self.player.pause()
+        self.player.replaceCurrentItem(with: nil)
 
         guard let url = URL(string: station.url) else {
             logger.error("cannot parse station url: \(station.url)")
+            isSettingUpPlayback = false
             return
         }
 
-        // “You can activate the audio session at any time after setting its category, but it’s recommended to defer this call until your app begins audio playback. Deferring the call ensures that you don’t prematurely interrupt any other background audio that may be in progress.”
+        // "You can activate the audio session at any time after setting its category, but it’s recommended to defer this call until your app begins audio playback. Deferring the call ensures that you don’t prematurely interrupt any other background audio that may be in progress."
         if !Self.audioSessionActivated {
             Self.audioSessionActivated = true
             activateAudioSession()
@@ -202,9 +252,9 @@ import android.net.Uri
         configurePlayerListener(for: item)
         self.player.replaceCurrentItem(with: item)
         self.player.play()
-        // TODO: we should instead be listening for player updates, so if the player is paused externally (e.g., using MPNowPlayingInfoCenter.default()), this property will be correctly updated
         viewModel.playerState = .playing
         updateRemoteCommands()
+        isSettingUpPlayback = false
         #if !os(Android)
         self.updateCurrentTrack(title: nil) // clear the current title until it comes up again; disabled because Android’s MediaPlayer doesn’t re-update this when you pause then play the same station again
         #endif
@@ -286,7 +336,7 @@ import android.net.Uri
         }
 
         if self.playerListener == nil {
-            let listener = PlayerListener { metadata in
+            let listener = PlayerListener(metadataCallback: { metadata in
                 self.updateCurrentTrack(title: metadata.title?.description)
                 if let artworkUri = metadata.artworkUri {
                     // Artwork URI from MediaMetadata — set by IcyArtworkForwardingPlayer
@@ -302,7 +352,17 @@ import android.net.Uri
                         }
                     }
                 }
-            }
+            }, isPlayingCallback: { isPlaying in
+                if isPlaying && self.viewModel.playerState != .playing {
+                    logger.info("external play detected (Android)")
+                    self.viewModel.playerState = .playing
+                    self.updateRemoteCommands()
+                } else if !isPlaying && self.viewModel.playerState == .playing {
+                    logger.info("external pause detected (Android)")
+                    self.viewModel.playerState = .paused
+                    self.updateRemoteCommands()
+                }
+            })
             self.playerListener = listener
             player.mediaPlayer.addListener(listener)
         }
@@ -368,9 +428,11 @@ import android.net.Uri
 #if SKIP
 final class PlayerListener: Player.Listener {
     let metadataCallback: (MediaMetadata) -> ()
+    let isPlayingCallback: ((Bool) -> ())?
 
-    init(metadataCallback: (MediaMetadata) -> ()) {
+    init(metadataCallback: (MediaMetadata) -> (), isPlayingCallback: ((Bool) -> ())? = nil) {
         self.metadataCallback = metadataCallback
+        self.isPlayingCallback = isPlayingCallback
     }
 
     override func onMediaItemTransition(mediaItem: MediaItem?, reason: Int) {
@@ -396,6 +458,12 @@ final class PlayerListener: Player.Listener {
         case Player.STATE_READY: logger.log("media ready to play")
         case Player.STATE_ENDED: logger.log("media playback ended")
         }
+    }
+
+    // Detect external play/pause changes (e.g., audio focus loss, phone call)
+    override func onIsPlayingChanged(isPlaying: Bool) {
+        logger.log("isPlaying changed: \(isPlaying)")
+        isPlayingCallback?(isPlaying)
     }
 
     // Listen for position updates
