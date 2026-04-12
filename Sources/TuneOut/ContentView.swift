@@ -3,7 +3,6 @@ import SwiftUI
 import SkipAV
 import SkipSQL
 import SkipSQLCore
-import SkipMarketplace
 import TuneOutModel
 import AppFairUI
 
@@ -69,7 +68,8 @@ struct ContentView: View {
             logger.log("launchCount: \(launchCount)")
             if launchCount >= 20 && (launchCount % 10 == 0) {
                 // they seem to like the app, so request a review
-                Marketplace.current.requestReview(period: .days(31))
+                // cannot include this in an App Fair app due to non-free library dependency
+                //Marketplace.current.requestReview(period: .days(31))
             }
         }
     }

@@ -2,7 +2,7 @@
   "SPDXID" : "SPDXRef-DOCUMENT",
   "spdxVersion" : "SPDX-2.3",
   "creationInfo" : {
-    "created" : "2026-04-12T15:54:04Z",
+    "created" : "2026-04-12T16:13:37Z",
     "creators" : [ "Tool: spdx-gradle-plugin" ]
   },
   "name" : "app",
@@ -17,16 +17,6 @@
     "extractedText" : "LGPL-2.1-or-later",
     "name" : "LGPL-2.1-or-later",
     "seeAlsos" : [ "http://www.gnu.org/licenses/old-licenses/lgpl-2.1" ]
-  }, {
-    "licenseId" : "LicenseRef-gnrtd2",
-    "extractedText" : "Play Core Software Development Kit Terms of Service",
-    "name" : "Play Core Software Development Kit Terms of Service",
-    "seeAlsos" : [ "http://developer.android.com/guide/playcore/license" ]
-  }, {
-    "licenseId" : "LicenseRef-gnrtd3",
-    "extractedText" : "Android Software Development Kit License",
-    "name" : "Android Software Development Kit License",
-    "seeAlsos" : [ "http://developer.android.com/studio/terms.html" ]
   } ],
   "documentNamespace" : "https://example.com/UUID",
   "packages" : [ {
@@ -3556,548 +3546,6 @@
     "name" : "androidx.browser:browser",
     "supplier" : "Organization: The Android Open Source Project",
     "versionInfo" : "1.10.0"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd159",
-    "copyrightText" : "NOASSERTION",
-    "description" : "",
-    "downloadLocation" : "NOASSERTION",
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "NOASSERTION",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "SkipMarketplace",
-    "sourceInfo" : "git+<no-scm-uri>@<no-scm-revision>#SkipMarketplace[:SkipMarketplace]",
-    "supplier" : "NOASSERTION",
-    "versionInfo" : "NOASSERTION"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd160",
-    "checksums" : [ {
-      "algorithm" : "SHA1",
-      "checksumValue" : "44a65165cc6a308a7d9dcc0c6e10bfc924d1a4b4"
-    }, {
-      "algorithm" : "SHA256",
-      "checksumValue" : "1602026678231dba0f7482d1244e45ff83d9ff22fc8b6d6be8961228ac7a32dd"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "https://dl.google.com/dl/android/maven2/com/google/android/play/review/2.0.2/review-2.0.2.aar",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.google.android.play/review@2.0.2?repository_url=dl.google.com%2Fdl%2Fandroid%2Fmaven2",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "LicenseRef-gnrtd2",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "com.google.android.play:review",
-    "supplier" : "Organization: NOASSERTION",
-    "versionInfo" : "2.0.2"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd161",
-    "checksums" : [ {
-      "algorithm" : "SHA1",
-      "checksumValue" : "bdc0da0600b30e6baed1d6b0875cdc3ae411ad69"
-    }, {
-      "algorithm" : "SHA256",
-      "checksumValue" : "ce5c936fd66814b3602f5c6a5e929911ff973d4b05f6de9996da596bef97cad2"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "https://dl.google.com/dl/android/maven2/com/google/android/gms/play-services-basement/18.4.0/play-services-basement-18.4.0.aar",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.google.android.gms/play-services-basement@18.4.0?repository_url=dl.google.com%2Fdl%2Fandroid%2Fmaven2",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "LicenseRef-gnrtd3",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "com.google.android.gms:play-services-basement",
-    "supplier" : "Organization: NOASSERTION",
-    "versionInfo" : "18.4.0"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd162",
-    "checksums" : [ {
-      "algorithm" : "SHA256",
-      "checksumValue" : "7f2aaa8f502068eaf54356ca92aec04271d6e7c416c52c45c0d23440fcbd1654"
-    }, {
-      "algorithm" : "SHA1",
-      "checksumValue" : "75cd01884bac2768b8ab1b530c6510334bb2330c"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "https://dl.google.com/dl/android/maven2/com/google/android/gms/play-services-tasks/18.2.0/play-services-tasks-18.2.0.aar",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.google.android.gms/play-services-tasks@18.2.0?repository_url=dl.google.com%2Fdl%2Fandroid%2Fmaven2",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "LicenseRef-gnrtd3",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "com.google.android.gms:play-services-tasks",
-    "supplier" : "Organization: NOASSERTION",
-    "versionInfo" : "18.2.0"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd163",
-    "checksums" : [ {
-      "algorithm" : "SHA1",
-      "checksumValue" : "d414fba1d4d3086d9bceb2a6d9f670ccc2e3d5c8"
-    }, {
-      "algorithm" : "SHA256",
-      "checksumValue" : "36400824014fc61d9379b13dd1ab13f6514847fb04347c0fdfe618bace78f3ed"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "https://dl.google.com/dl/android/maven2/com/google/android/play/core-common/2.0.4/core-common-2.0.4.aar",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.google.android.play/core-common@2.0.4?repository_url=dl.google.com%2Fdl%2Fandroid%2Fmaven2",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "LicenseRef-gnrtd2",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "com.google.android.play:core-common",
-    "supplier" : "Organization: NOASSERTION",
-    "versionInfo" : "2.0.4"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd164",
-    "checksums" : [ {
-      "algorithm" : "SHA256",
-      "checksumValue" : "dc72287e3b23c1041ecd1ce2be6bd561c67afafb5b95ac9224c196643ea0faa0"
-    }, {
-      "algorithm" : "SHA1",
-      "checksumValue" : "c63cc33ce280ceb56eb4038110e823cff935b46d"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "https://dl.google.com/dl/android/maven2/com/google/android/play/review-ktx/2.0.2/review-ktx-2.0.2.aar",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.google.android.play/review-ktx@2.0.2?repository_url=dl.google.com%2Fdl%2Fandroid%2Fmaven2",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "LicenseRef-gnrtd2",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "com.google.android.play:review-ktx",
-    "supplier" : "Organization: NOASSERTION",
-    "versionInfo" : "2.0.2"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd165",
-    "checksums" : [ {
-      "algorithm" : "SHA256",
-      "checksumValue" : "1565e9ef014f7cb7193f0462e4d817480aff4b333fc7f7e0052bb932cc28820d"
-    }, {
-      "algorithm" : "SHA1",
-      "checksumValue" : "49532e9ad050346e76707aa8c3838278b13b8514"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "https://dl.google.com/dl/android/maven2/com/google/android/play/app-update/2.1.0/app-update-2.1.0.aar",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.google.android.play/app-update@2.1.0?repository_url=dl.google.com%2Fdl%2Fandroid%2Fmaven2",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "LicenseRef-gnrtd2",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "com.google.android.play:app-update",
-    "supplier" : "Organization: NOASSERTION",
-    "versionInfo" : "2.1.0"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd166",
-    "checksums" : [ {
-      "algorithm" : "SHA1",
-      "checksumValue" : "4bf19be706cabbaa2a19a00bf79a0df48a6e3756"
-    }, {
-      "algorithm" : "SHA256",
-      "checksumValue" : "cb87bec6a740bf91f3ee45b57c9853a0a77887116a6cabfba29a2c46f6679244"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "https://dl.google.com/dl/android/maven2/com/google/android/play/app-update-ktx/2.1.0/app-update-ktx-2.1.0.aar",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.google.android.play/app-update-ktx@2.1.0?repository_url=dl.google.com%2Fdl%2Fandroid%2Fmaven2",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "LicenseRef-gnrtd2",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "com.google.android.play:app-update-ktx",
-    "supplier" : "Organization: NOASSERTION",
-    "versionInfo" : "2.1.0"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd167",
-    "checksums" : [ {
-      "algorithm" : "SHA256",
-      "checksumValue" : "085bd4632ccf96ceafcbfb10219ae57d604c5f680a2ea3bf860fe2b289afe5ad"
-    }, {
-      "algorithm" : "SHA1",
-      "checksumValue" : "a4af697d64d9a1e41c0cb035e3f05783bade9280"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "https://dl.google.com/dl/android/maven2/com/google/android/play/feature-delivery/2.1.0/feature-delivery-2.1.0.aar",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.google.android.play/feature-delivery@2.1.0?repository_url=dl.google.com%2Fdl%2Fandroid%2Fmaven2",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "LicenseRef-gnrtd2",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "com.google.android.play:feature-delivery",
-    "supplier" : "Organization: NOASSERTION",
-    "versionInfo" : "2.1.0"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd168",
-    "checksums" : [ {
-      "algorithm" : "SHA256",
-      "checksumValue" : "5c042f0545144f390435b582fd74e14da6c7699bc183a12aeb84a32f261e4563"
-    }, {
-      "algorithm" : "SHA1",
-      "checksumValue" : "a4ccd7f0d17c1ee764961c2e4bba75a5d42d0b2c"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "https://dl.google.com/dl/android/maven2/com/google/android/play/feature-delivery-ktx/2.1.0/feature-delivery-ktx-2.1.0.aar",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.google.android.play/feature-delivery-ktx@2.1.0?repository_url=dl.google.com%2Fdl%2Fandroid%2Fmaven2",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "LicenseRef-gnrtd2",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "com.google.android.play:feature-delivery-ktx",
-    "supplier" : "Organization: NOASSERTION",
-    "versionInfo" : "2.1.0"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd169",
-    "checksums" : [ {
-      "algorithm" : "SHA256",
-      "checksumValue" : "ed21fdcebdcf62e315f4baee3555bc8223ee7b9d66d11a3a204c52a94734b5a5"
-    }, {
-      "algorithm" : "SHA1",
-      "checksumValue" : "bbb2dab0d5a827d1caf8d9f42a3fedcc022e0945"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "https://dl.google.com/dl/android/maven2/com/google/android/play/asset-delivery/2.3.0/asset-delivery-2.3.0.aar",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.google.android.play/asset-delivery@2.3.0?repository_url=dl.google.com%2Fdl%2Fandroid%2Fmaven2",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "LicenseRef-gnrtd2",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "com.google.android.play:asset-delivery",
-    "supplier" : "Organization: NOASSERTION",
-    "versionInfo" : "2.3.0"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd170",
-    "checksums" : [ {
-      "algorithm" : "SHA256",
-      "checksumValue" : "311d8a21338ef867948e02a4999ead72d5acfc07a0b0c303faec444fa8f9ff96"
-    }, {
-      "algorithm" : "SHA1",
-      "checksumValue" : "f1bb1d6480c8cb9c4f6b9ec88f00eebc00dbe924"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "https://dl.google.com/dl/android/maven2/com/google/android/play/asset-delivery-ktx/2.3.0/asset-delivery-ktx-2.3.0.aar",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.google.android.play/asset-delivery-ktx@2.3.0?repository_url=dl.google.com%2Fdl%2Fandroid%2Fmaven2",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "LicenseRef-gnrtd2",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "com.google.android.play:asset-delivery-ktx",
-    "supplier" : "Organization: NOASSERTION",
-    "versionInfo" : "2.3.0"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd171",
-    "checksums" : [ {
-      "algorithm" : "SHA256",
-      "checksumValue" : "76b3d92c30d2d5e8d22599f8d9c6d46cda031f3477fcdf2732fe1a88748c4f75"
-    }, {
-      "algorithm" : "SHA1",
-      "checksumValue" : "b459ad8ea0eafc4ef677d0b993924bda1213e340"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "https://dl.google.com/dl/android/maven2/com/android/billingclient/billing/8.0.0/billing-8.0.0.aar",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.android.billingclient/billing@8.0.0?repository_url=dl.google.com%2Fdl%2Fandroid%2Fmaven2",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "LicenseRef-gnrtd3",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "com.android.billingclient:billing",
-    "supplier" : "Organization: NOASSERTION",
-    "versionInfo" : "8.0.0"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd172",
-    "checksums" : [ {
-      "algorithm" : "SHA1",
-      "checksumValue" : "7421bab19ed712c5592694e807ba72ccf39d42d4"
-    }, {
-      "algorithm" : "SHA256",
-      "checksumValue" : "4e6983c0703b357df6f1c6ceacb1b5dfc2c5006a789c799fec2298b2b5337466"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "https://dl.google.com/dl/android/maven2/com/google/android/datatransport/transport-api/3.0.0/transport-api-3.0.0.aar",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.google.android.datatransport/transport-api@3.0.0?repository_url=dl.google.com%2Fdl%2Fandroid%2Fmaven2",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "Apache-2.0",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "com.google.android.datatransport:transport-api",
-    "supplier" : "Organization: NOASSERTION",
-    "versionInfo" : "3.0.0"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd173",
-    "checksums" : [ {
-      "algorithm" : "SHA256",
-      "checksumValue" : "e17edd1ef7fd475c90baa4e39422332f27087d34bcb46cb48ce86af9a54a612e"
-    }, {
-      "algorithm" : "SHA1",
-      "checksumValue" : "0cfd0b63e154b80207d36ef3199ae06c8fe088e5"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "https://dl.google.com/dl/android/maven2/com/google/android/datatransport/transport-backend-cct/3.1.8/transport-backend-cct-3.1.8.aar",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.google.android.datatransport/transport-backend-cct@3.1.8?repository_url=dl.google.com%2Fdl%2Fandroid%2Fmaven2",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "Apache-2.0",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "com.google.android.datatransport:transport-backend-cct",
-    "supplier" : "Organization: NOASSERTION",
-    "versionInfo" : "3.1.8"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd174",
-    "checksums" : [ {
-      "algorithm" : "SHA256",
-      "checksumValue" : "cb9353ef1791ae17097d878ca711e25a9c32cec9042adc49b00cadfee1a7290b"
-    }, {
-      "algorithm" : "SHA1",
-      "checksumValue" : "5632cd0e73a5e28a50761beae0b999ca8a3d69ce"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "https://dl.google.com/dl/android/maven2/com/google/android/datatransport/transport-runtime/3.1.8/transport-runtime-3.1.8.aar",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.google.android.datatransport/transport-runtime@3.1.8?repository_url=dl.google.com%2Fdl%2Fandroid%2Fmaven2",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "Apache-2.0",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "com.google.android.datatransport:transport-runtime",
-    "supplier" : "Organization: NOASSERTION",
-    "versionInfo" : "3.1.8"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd175",
-    "checksums" : [ {
-      "algorithm" : "SHA256",
-      "checksumValue" : "282a5a703f9b7eb56508dde97ea918e95d73318b157050f457f7a86dca750150"
-    }, {
-      "algorithm" : "SHA1",
-      "checksumValue" : "26f52dc549c42575b155f8c720e84059ee600a85"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "https://dl.google.com/dl/android/maven2/com/google/firebase/firebase-encoders/17.0.0/firebase-encoders-17.0.0.jar",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.google.firebase/firebase-encoders@17.0.0?repository_url=dl.google.com%2Fdl%2Fandroid%2Fmaven2",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "Apache-2.0",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "com.google.firebase:firebase-encoders",
-    "supplier" : "Organization: NOASSERTION",
-    "versionInfo" : "17.0.0"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd176",
-    "checksums" : [ {
-      "algorithm" : "SHA256",
-      "checksumValue" : "293db96a0d1d43f033167881b638d8fde844e4e5495f5101cf52295765295e0e"
-    }, {
-      "algorithm" : "SHA1",
-      "checksumValue" : "a42d5fd83b96ae7b73a8617d29c94703e18c9992"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "https://dl.google.com/dl/android/maven2/com/google/firebase/firebase-encoders-proto/16.0.0/firebase-encoders-proto-16.0.0.jar",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.google.firebase/firebase-encoders-proto@16.0.0?repository_url=dl.google.com%2Fdl%2Fandroid%2Fmaven2",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "Apache-2.0",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "com.google.firebase:firebase-encoders-proto",
-    "supplier" : "Organization: NOASSERTION",
-    "versionInfo" : "16.0.0"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd177",
-    "checksums" : [ {
-      "algorithm" : "SHA1",
-      "checksumValue" : "6975da39a7040257bd51d21a231b76c915872d38"
-    }, {
-      "algorithm" : "SHA256",
-      "checksumValue" : "91c77044a50c481636c32d916fd89c9118a72195390452c81065080f957de7ff"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "https://repo.maven.apache.org/maven2/javax/inject/javax.inject/1/javax.inject-1.jar",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/javax.inject/javax.inject@1?repository_url=repo.maven.apache.org%2Fmaven2",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "Apache-2.0",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "javax.inject:javax.inject",
-    "supplier" : "Organization: NOASSERTION",
-    "versionInfo" : "1"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd178",
-    "checksums" : [ {
-      "algorithm" : "SHA256",
-      "checksumValue" : "80aece7e1ef58957ca2fc1957bc9208ec92a3a9528201331d3c63e3182570f97"
-    }, {
-      "algorithm" : "SHA1",
-      "checksumValue" : "96bb325983a231881f1e195ed9d713189f421dea"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "https://dl.google.com/dl/android/maven2/com/google/firebase/firebase-encoders-json/18.0.0/firebase-encoders-json-18.0.0.aar",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.google.firebase/firebase-encoders-json@18.0.0?repository_url=dl.google.com%2Fdl%2Fandroid%2Fmaven2",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "Apache-2.0",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "com.google.firebase:firebase-encoders-json",
-    "supplier" : "Organization: NOASSERTION",
-    "versionInfo" : "18.0.0"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd179",
-    "checksums" : [ {
-      "algorithm" : "SHA256",
-      "checksumValue" : "59a5c0c2da12311d75d965ce1f419498536b1a167fb28ff7dfc2dfd9cefa4157"
-    }, {
-      "algorithm" : "SHA1",
-      "checksumValue" : "9b3fc5c98a0a082ce2804aa97d1f1bf39b01ce76"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "https://dl.google.com/dl/android/maven2/com/google/android/gms/play-services-base/18.5.0/play-services-base-18.5.0.aar",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.google.android.gms/play-services-base@18.5.0?repository_url=dl.google.com%2Fdl%2Fandroid%2Fmaven2",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "LicenseRef-gnrtd3",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "com.google.android.gms:play-services-base",
-    "supplier" : "Organization: NOASSERTION",
-    "versionInfo" : "18.5.0"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd180",
-    "checksums" : [ {
-      "algorithm" : "SHA256",
-      "checksumValue" : "6b205c43ba5df751eca8ce9dae7a58effafac7d637fb4fc708a7522d1b99cf80"
-    }, {
-      "algorithm" : "SHA1",
-      "checksumValue" : "ebe2c9a380472c149a0fbd982474bc93792057e0"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "https://dl.google.com/dl/android/maven2/com/google/android/gms/play-services-location/19.0.0/play-services-location-19.0.0.aar",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.google.android.gms/play-services-location@19.0.0?repository_url=dl.google.com%2Fdl%2Fandroid%2Fmaven2",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "LicenseRef-gnrtd3",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "com.google.android.gms:play-services-location",
-    "supplier" : "Organization: NOASSERTION",
-    "versionInfo" : "19.0.0"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd181",
-    "checksums" : [ {
-      "algorithm" : "SHA256",
-      "checksumValue" : "2c7fd63ad02f28150ae4ffe4615dac7d694d790e2c4667f777aedc8ee054e929"
-    }, {
-      "algorithm" : "SHA1",
-      "checksumValue" : "6fd0e52de8c47b7228223bf3a7fe53d075b6b0b2"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "https://dl.google.com/dl/android/maven2/com/google/android/gms/play-services-places-placereport/17.0.0/play-services-places-placereport-17.0.0.aar",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.google.android.gms/play-services-places-placereport@17.0.0?repository_url=dl.google.com%2Fdl%2Fandroid%2Fmaven2",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "LicenseRef-gnrtd3",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "com.google.android.gms:play-services-places-placereport",
-    "supplier" : "Organization: NOASSERTION",
-    "versionInfo" : "17.0.0"
-  }, {
-    "SPDXID" : "SPDXRef-gnrtd182",
-    "checksums" : [ {
-      "algorithm" : "SHA1",
-      "checksumValue" : "3c76f224d0556fb608a307961d0298db049d68c7"
-    }, {
-      "algorithm" : "SHA256",
-      "checksumValue" : "0179e3b9d0789672f722ef496413517ed742390c191f2763452412796e394c30"
-    } ],
-    "copyrightText" : "NOASSERTION",
-    "downloadLocation" : "https://dl.google.com/dl/android/maven2/com/android/billingclient/billing-ktx/8.0.0/billing-ktx-8.0.0.aar",
-    "externalRefs" : [ {
-      "referenceCategory" : "PACKAGE-MANAGER",
-      "referenceLocator" : "pkg:maven/com.android.billingclient/billing-ktx@8.0.0?repository_url=dl.google.com%2Fdl%2Fandroid%2Fmaven2",
-      "referenceType" : "purl"
-    } ],
-    "filesAnalyzed" : false,
-    "licenseConcluded" : "NOASSERTION",
-    "licenseDeclared" : "LicenseRef-gnrtd3",
-    "licenseInfoFromFiles" : [ ],
-    "name" : "com.android.billingclient:billing-ktx",
-    "supplier" : "Organization: NOASSERTION",
-    "versionInfo" : "8.0.0"
   } ],
   "relationships" : [ {
     "spdxElementId" : "SPDXRef-DOCUMENT",
@@ -4106,15 +3554,11 @@
   }, {
     "spdxElementId" : "SPDXRef-gnrtd0",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd5"
+    "relatedSpdxElement" : "SPDXRef-gnrtd1"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd0",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd1"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd1",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd4"
+    "relatedSpdxElement" : "SPDXRef-gnrtd5"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd1",
     "relationshipType" : "DEPENDS_ON",
@@ -4124,21 +3568,9 @@
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-gnrtd2"
   }, {
-    "spdxElementId" : "SPDXRef-gnrtd5",
+    "spdxElementId" : "SPDXRef-gnrtd1",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd10"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd5",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd6"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd5",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd159"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd5",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd17"
+    "relatedSpdxElement" : "SPDXRef-gnrtd4"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd5",
     "relationshipType" : "DEPENDS_ON",
@@ -4146,11 +3578,23 @@
   }, {
     "spdxElementId" : "SPDXRef-gnrtd5",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd156"
+    "relatedSpdxElement" : "SPDXRef-gnrtd10"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd5",
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-gnrtd20"
+  }, {
+    "spdxElementId" : "SPDXRef-gnrtd5",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-gnrtd17"
+  }, {
+    "spdxElementId" : "SPDXRef-gnrtd5",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-gnrtd6"
+  }, {
+    "spdxElementId" : "SPDXRef-gnrtd5",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-gnrtd156"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd6",
     "relationshipType" : "DEPENDS_ON",
@@ -4210,6 +3654,10 @@
   }, {
     "spdxElementId" : "SPDXRef-gnrtd21",
     "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-gnrtd26"
+  }, {
+    "spdxElementId" : "SPDXRef-gnrtd21",
+    "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-gnrtd22"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd21",
@@ -4220,21 +3668,9 @@
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-gnrtd23"
   }, {
-    "spdxElementId" : "SPDXRef-gnrtd21",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd26"
-  }, {
     "spdxElementId" : "SPDXRef-gnrtd23",
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-gnrtd24"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd27",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd103"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd27",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd104"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd27",
     "relationshipType" : "DEPENDS_ON",
@@ -4243,6 +3679,14 @@
     "spdxElementId" : "SPDXRef-gnrtd27",
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-gnrtd28"
+  }, {
+    "spdxElementId" : "SPDXRef-gnrtd27",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-gnrtd103"
+  }, {
+    "spdxElementId" : "SPDXRef-gnrtd27",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-gnrtd104"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd28",
     "relationshipType" : "DEPENDS_ON",
@@ -4262,11 +3706,11 @@
   }, {
     "spdxElementId" : "SPDXRef-gnrtd32",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd33"
+    "relatedSpdxElement" : "SPDXRef-gnrtd69"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd32",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd69"
+    "relatedSpdxElement" : "SPDXRef-gnrtd33"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd33",
     "relationshipType" : "DEPENDS_ON",
@@ -4330,11 +3774,11 @@
   }, {
     "spdxElementId" : "SPDXRef-gnrtd47",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd49"
+    "relatedSpdxElement" : "SPDXRef-gnrtd48"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd47",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd48"
+    "relatedSpdxElement" : "SPDXRef-gnrtd49"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd49",
     "relationshipType" : "DEPENDS_ON",
@@ -4374,31 +3818,31 @@
   }, {
     "spdxElementId" : "SPDXRef-gnrtd57",
     "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-gnrtd58"
+  }, {
+    "spdxElementId" : "SPDXRef-gnrtd57",
+    "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-gnrtd62"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd57",
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-gnrtd61"
   }, {
-    "spdxElementId" : "SPDXRef-gnrtd57",
+    "spdxElementId" : "SPDXRef-gnrtd58",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd58"
+    "relatedSpdxElement" : "SPDXRef-gnrtd60"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd58",
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-gnrtd59"
   }, {
-    "spdxElementId" : "SPDXRef-gnrtd58",
+    "spdxElementId" : "SPDXRef-gnrtd63",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd60"
+    "relatedSpdxElement" : "SPDXRef-gnrtd66"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd63",
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-gnrtd64"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd63",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd66"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd64",
     "relationshipType" : "DEPENDS_ON",
@@ -4410,11 +3854,15 @@
   }, {
     "spdxElementId" : "SPDXRef-gnrtd69",
     "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-gnrtd70"
+  }, {
+    "spdxElementId" : "SPDXRef-gnrtd69",
+    "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-gnrtd99"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd69",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd92"
+    "relatedSpdxElement" : "SPDXRef-gnrtd76"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd69",
     "relationshipType" : "DEPENDS_ON",
@@ -4422,15 +3870,11 @@
   }, {
     "spdxElementId" : "SPDXRef-gnrtd69",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd70"
+    "relatedSpdxElement" : "SPDXRef-gnrtd92"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd69",
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-gnrtd91"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd69",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd76"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd70",
     "relationshipType" : "DEPENDS_ON",
@@ -4438,11 +3882,11 @@
   }, {
     "spdxElementId" : "SPDXRef-gnrtd71",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd72"
+    "relatedSpdxElement" : "SPDXRef-gnrtd74"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd71",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd74"
+    "relatedSpdxElement" : "SPDXRef-gnrtd72"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd72",
     "relationshipType" : "DEPENDS_ON",
@@ -4482,11 +3926,11 @@
   }, {
     "spdxElementId" : "SPDXRef-gnrtd83",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd84"
+    "relatedSpdxElement" : "SPDXRef-gnrtd88"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd83",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd88"
+    "relatedSpdxElement" : "SPDXRef-gnrtd84"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd84",
     "relationshipType" : "DEPENDS_ON",
@@ -4558,6 +4002,18 @@
   }, {
     "spdxElementId" : "SPDXRef-gnrtd109",
     "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-gnrtd122"
+  }, {
+    "spdxElementId" : "SPDXRef-gnrtd109",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-gnrtd121"
+  }, {
+    "spdxElementId" : "SPDXRef-gnrtd109",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-gnrtd124"
+  }, {
+    "spdxElementId" : "SPDXRef-gnrtd109",
+    "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-gnrtd112"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd109",
@@ -4571,18 +4027,6 @@
     "spdxElementId" : "SPDXRef-gnrtd109",
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-gnrtd113"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd109",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd122"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd109",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd121"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd109",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd124"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd110",
     "relationshipType" : "DEPENDS_ON",
@@ -4618,14 +4062,6 @@
   }, {
     "spdxElementId" : "SPDXRef-gnrtd125",
     "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd150"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd125",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd148"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd125",
-    "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-gnrtd128"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd125",
@@ -4640,9 +4076,21 @@
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-gnrtd137"
   }, {
+    "spdxElementId" : "SPDXRef-gnrtd125",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-gnrtd150"
+  }, {
+    "spdxElementId" : "SPDXRef-gnrtd125",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-gnrtd148"
+  }, {
     "spdxElementId" : "SPDXRef-gnrtd126",
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-gnrtd127"
+  }, {
+    "spdxElementId" : "SPDXRef-gnrtd128",
+    "relationshipType" : "DEPENDS_ON",
+    "relatedSpdxElement" : "SPDXRef-gnrtd136"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd128",
     "relationshipType" : "DEPENDS_ON",
@@ -4659,10 +4107,6 @@
     "spdxElementId" : "SPDXRef-gnrtd128",
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-gnrtd133"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd128",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd136"
   }, {
     "spdxElementId" : "SPDXRef-gnrtd129",
     "relationshipType" : "DEPENDS_ON",
@@ -4739,97 +4183,5 @@
     "spdxElementId" : "SPDXRef-gnrtd157",
     "relationshipType" : "DEPENDS_ON",
     "relatedSpdxElement" : "SPDXRef-gnrtd158"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd159",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd182"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd159",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd164"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd159",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd160"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd159",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd169"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd159",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd168"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd159",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd171"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd159",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd170"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd159",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd167"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd159",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd166"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd159",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd165"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd160",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd161"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd160",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd163"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd160",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd162"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd171",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd180"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd171",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd179"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd171",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd173"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd171",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd172"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd173",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd174"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd173",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd178"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd174",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd177"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd174",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd176"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd174",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd175"
-  }, {
-    "spdxElementId" : "SPDXRef-gnrtd180",
-    "relationshipType" : "DEPENDS_ON",
-    "relatedSpdxElement" : "SPDXRef-gnrtd181"
   } ]
 }

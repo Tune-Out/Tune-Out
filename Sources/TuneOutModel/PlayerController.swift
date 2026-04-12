@@ -49,6 +49,10 @@ import android.net.Uri
     /// Guard against re-entrant play() calls that could create duplicate streams
     private var isSettingUpPlayback = false
 
+    /// The URL of the stream currently loaded in the player (playing or paused).
+    /// Used to decide whether we can resume or must create a new stream.
+    private var currentStreamURL: String? = nil
+
     init(viewModel: ViewModel) {
         self.viewModel = viewModel
         setupRemoteCommands()
@@ -75,6 +79,16 @@ import android.net.Uri
     /// is paused or resumed externally (e.g., phone call, Siri, Control Center).
     func observePlaybackState() {
         #if !SKIP
+        observeTimeControlStatus()
+        #endif
+    }
+
+    #if !SKIP
+    /// Set up KVO on the current player's timeControlStatus.
+    /// Must be called whenever `player` is replaced with a new instance.
+    private func observeTimeControlStatus() {
+        // Cancel any existing observation before creating a new one
+        timeControlStatusObservation?.invalidate()
         timeControlStatusObservation = player.observe(\.timeControlStatus, options: [.new, .old]) { [weak self] player, change in
             guard let self = self else { return }
             let newStatus = player.timeControlStatus
@@ -95,12 +109,32 @@ import android.net.Uri
                         self.updateRemoteCommands()
                     }
                 case .waitingToPlayAtSpecifiedRate:
-                    break // buffering — don't change state
+                    break // buffering, don't change state
                 @unknown default:
                     break
                 }
             }
         }
+    }
+    #endif
+
+    /// Completely stop all audio playback and tear down the current stream.
+    /// On iOS, this creates a brand-new AVPlayer to guarantee no lingering
+    /// network connections from the old stream can produce audio.
+    private func stopAllPlayback() {
+        logger.info("stopAllPlayback: tearing down current stream")
+        self.player.pause()
+        self.player.replaceCurrentItem(with: nil)
+        currentStreamURL = nil
+        #if !SKIP
+        // On iOS, replace the AVPlayer entirely to guarantee any buffering
+        // network connections from the old player are fully released.
+        // A single AVPlayer can retain internal references to old stream
+        // connections even after replaceCurrentItem(with: nil).
+        timeControlStatusObservation?.invalidate()
+        timeControlStatusObservation = nil
+        self.player = AVPlayer()
+        observeTimeControlStatus()
         #endif
     }
 
@@ -212,11 +246,10 @@ import android.net.Uri
             return
         }
 
-        // If resuming the same station that is currently paused, just call play()
-        // on the existing player without creating a new AVPlayerItem.
-        // Creating a new item while the old one is still buffering can cause
-        // the stream to play twice simultaneously on iOS.
-        if station.url == viewModel.nowPlaying?.url && viewModel.playerState == .paused && self.player.currentItem != nil {
+        // If resuming the exact same stream that is currently paused,
+        // just call play() on the existing player without creating a new
+        // AVPlayerItem. This avoids tearing down and reconnecting the stream.
+        if station.url == currentStreamURL && viewModel.playerState == .paused {
             logger.info("resuming paused stream: \(station.url)")
             self.player.play()
             viewModel.playerState = .playing
@@ -227,12 +260,10 @@ import android.net.Uri
         logger.info("play: \(station.url)")
         isSettingUpPlayback = true
 
-        // Fully tear down any existing stream before starting a new one.
-        // On iOS, just calling pause() may not immediately release the old
-        // buffering connection, which can result in two streams playing
-        // simultaneously when the new item starts.
-        self.player.pause()
-        self.player.replaceCurrentItem(with: nil)
+        // Completely stop and tear down any existing stream before starting
+        // a new one. On iOS this replaces the AVPlayer instance entirely to
+        // guarantee no lingering buffering connections from the old stream.
+        stopAllPlayback()
 
         guard let url = URL(string: station.url) else {
             logger.error("cannot parse station url: \(station.url)")
@@ -252,6 +283,7 @@ import android.net.Uri
         configurePlayerListener(for: item)
         self.player.replaceCurrentItem(with: item)
         self.player.play()
+        currentStreamURL = station.url
         viewModel.playerState = .playing
         updateRemoteCommands()
         isSettingUpPlayback = false
@@ -264,6 +296,13 @@ import android.net.Uri
         logger.info("pause")
         self.player.pause()
         viewModel.playerState = .paused
+        updateRemoteCommands()
+    }
+
+    public func stop() {
+        logger.info("stop")
+        stopAllPlayback()
+        viewModel.playerState = .stopped
         updateRemoteCommands()
     }
 
