@@ -1539,7 +1539,7 @@ struct SettingsView: View {
     var body: some View {
         @Bindable var viewModel = viewModel
 
-        AppFairSettings {
+        AppFairSettings(bundle: .module) {
             Picker("Appearance", selection: $appearance) {
                 Text("System").tag("")
                 Text("Light").tag("light")
