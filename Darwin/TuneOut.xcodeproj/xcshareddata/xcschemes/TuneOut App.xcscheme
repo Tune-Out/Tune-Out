@@ -18,7 +18,7 @@
                BlueprintIdentifier = "499CD4382AC5B799001AE8D8"
                BuildableName = "TuneOut.app"
                BlueprintName = "TuneOut App"
-               ReferencedContainer = "container:../../../skiptools/Tune-Out/Darwin/TuneOut.xcodeproj">
+               ReferencedContainer = "container:TuneOut.xcodeproj">
             </BuildableReference>
          </BuildActionEntry>
       </BuildActionEntries>
@@ -48,7 +48,7 @@
             BlueprintIdentifier = "499CD4382AC5B799001AE8D8"
             BuildableName = "TuneOut.app"
             BlueprintName = "TuneOut App"
-            ReferencedContainer = "container:../../../skiptools/Tune-Out/Darwin/TuneOut.xcodeproj">
+            ReferencedContainer = "container:TuneOut.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </LaunchAction>
@@ -65,7 +65,7 @@
             BlueprintIdentifier = "499CD4382AC5B799001AE8D8"
             BuildableName = "TuneOut.app"
             BlueprintName = "TuneOut App"
-            ReferencedContainer = "container:../../../skiptools/Tune-Out/Darwin/TuneOut.xcodeproj">
+            ReferencedContainer = "container:TuneOut.xcodeproj">
          </BuildableReference>
       </BuildableProductRunnable>
    </ProfileAction>
