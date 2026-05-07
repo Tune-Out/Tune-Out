@@ -1,0 +1,53 @@
+# Configuration for the appsite/ Astro template.
+# Path is relative to this file.
+
+# Required ────────────────────────────────────────────────────────────────────
+
+# Public-facing site name; appears in <title>, OpenGraph, and the footer.
+title: 'Tune Out'
+
+# Canonical site URL (used for sitemap, OpenGraph, and absolute links).
+host: 'https://tune-out.app'
+
+# Path to the appindex.json publication document, relative to this file.
+# generate it with: skip meta index -O site/appindex.json
+appindex: 'appindex.json'
+
+# Optional ────────────────────────────────────────────────────────────────────
+
+# Tagline shown in <meta description> when no per-locale subtitle is available.
+tagline: 'Stream internet radio'
+
+# Brand accent colour. Used for buttons, focus rings, and accents.
+# Any CSS colour value (hex, rgb, oklch, etc.).
+accentColor: '#3B82F6'
+
+# Default theme: 'light', 'dark', or 'system' (follows OS preference).
+defaultTheme: 'system'
+
+# Default platform shown in the picker before a user selects: 'ios' or 'android'.
+# If only one platform is present in appindex.json, the picker is hidden.
+defaultPlatform: 'ios'
+
+# Show the source-code repository link in the footer.
+showSourceLink: true
+
+# Show the App Store / Play Store badges.
+showStoreBadges: true
+
+# Show the permissions section.
+showPermissions: true
+
+# Show the SBOM dependency count summary in the about section.
+showDependencyCount: true
+
+# Footer copyright line. Use {year} for the current year.
+footer: '© {year} App Fair Project. Open source software.'
+
+# Optional plausible.io / fathom / umami analytics script URL (omit to disable).
+# analyticsScript: 'https://plausible.io/js/script.js'
+# analyticsDomain: 'tune-out.github.io'
+
+# OpenGraph social-card image URL. Falls back to the app's feature graphic
+# (Android) or icon. Should be ≥1200×630 for best results.
+# socialImage: 'https://example.com/og-card.png'
