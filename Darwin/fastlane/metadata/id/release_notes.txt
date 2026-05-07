@@ -1,0 +1,2 @@
+• Perbaikan bug dan peningkatan kinerja.
+• Aktifkan Liquid Glass

@@ -1,0 +1,2 @@
+• Correcciones de errores y mejoras de rendimiento.
+• Activar Liquid Glass

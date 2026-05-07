@@ -1,0 +1,2 @@
+• Corrections de bogues et améliorations des performances.
+• Activation de Liquid Glass

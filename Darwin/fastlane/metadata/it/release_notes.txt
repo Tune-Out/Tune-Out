@@ -1,0 +1,2 @@
+• Correzioni di bug e miglioramenti delle prestazioni.
+• Abilita Liquid Glass
