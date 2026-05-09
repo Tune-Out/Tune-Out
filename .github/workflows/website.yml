@@ -33,6 +33,7 @@ jobs:
         with:
           repository: appfair/appland
           path: site/appland
+          ref: v1
 
       - name: Setup Skip
         uses: skiptools/actions/setup-skip@v1
